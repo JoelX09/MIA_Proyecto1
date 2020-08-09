@@ -18,29 +18,33 @@ func main() {
 
 	comando1 := strings.Split(comando, "\n") //Hago split con salto si es un comando divido
 
-	if temp := comando1[0]; temp[0] == '#' { //Verifico si la primera linea es comentario
-		fmt.Println("Comentario: " + temp[1:])
+	temp := comando1[0]
+	if temp[0] == '#' { //Verifico si la primera linea es comentario
+		fmt.Println("\nComentario: " + temp[1:])
 	} else if len(comando1) == 2 {
-		if temp := comando1[0]; temp[len(temp)-2:] == "\\*" { //verifico si valida que el comando continua
-			temp = strings.ReplaceAll(temp, "\\*", "")
-			temp1 := temp + comando1[1]
-			fmt.Println("Comando:")
-			fmt.Println(temp1)
+		if temp[len(temp)-2:] == "\\*" { //verifico si valida que el comando continua
+			temp = strings.ReplaceAll(temp, "\\*", "") //Elimino /*
+			temp = temp + comando1[1]                  //Concateno el comando
+			analizador(temp)
 		} else {
 			fmt.Println("Revisar el comando ingresado")
 		}
 	} else {
-		fmt.Println("Revisar el comando ingresado")
+		temp1 := strings.Split(temp, "#")
+		if len(temp1) > 1 {
+			fmt.Println("\nComentario: " + temp1[1])
+		}
+		analizador(temp1[0])
 	}
+}
 
-	//comando = strings.ReplaceAll(comando, "\\*", "")
+func analizador(cadena string) {
+	comandoAnalizar := strings.Split(cadena, "\n")
 
-	//comando := strings.TrimRight(comando1, "*")
-
-	//fmt.Println("Ejecutando...")
-	//fmt.Println(comando)
-
-	//fmt.Println(comando[len(comando)-2:]) ///<-------- para el simbolo \*
-
-	//fmt.Println(b)
+	for i := 0; i < len(comandoAnalizar); i++ {
+		comando := comandoAnalizar[i]
+		declaracionComando := strings.SplitN(comando, " ", 2)
+		fmt.Println("\nComando a ejecutar: \"" + declaracionComando[0] + "\"")
+		fmt.Println("Contenido: " + declaracionComando[1])
+	}
 }
