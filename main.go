@@ -11,7 +11,7 @@ import (
 
 type datoDisco struct {
 	path    string
-	size    string
+	size    int
 	name    string
 	unit    byte
 	typeP   byte
@@ -21,7 +21,20 @@ type datoDisco struct {
 	idn     string
 }
 
+type banderaParam struct {
+	pathY   bool
+	sizeY   bool
+	nameY   bool
+	unitY   bool
+	typeY   bool
+	fitY    bool
+	deleteY bool
+	addY    bool
+	idY     bool
+}
+
 var dato datoDisco
+var flagP banderaParam
 
 func main() {
 	fmt.Println("Joel Obdulio Xicara Rios \n201403975")
@@ -31,8 +44,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	lectura, _ := reader.ReadString('|')
 	comando := strings.TrimRight(lectura, "|") //Elimino el caracter | que acepta la cadena
-
-	comando1 := strings.Split(comando, "\n") //Hago split con salto si es un comando divido
+	comando1 := strings.Split(comando, "\n")   //Hago split con salto si es un comando divido
 
 	temp := comando1[0]
 	if temp[0] == '#' { //Verifico si la primera linea es comentario
@@ -85,14 +97,15 @@ func analizador(cadena string) {
 						parametro = strings.ReplaceAll(parametro, "\\*", "") + listado[i]
 					}
 					fmt.Println("Contenido: " + parametro)
-					dato = datoDisco{"", "", "", 0, 0, "", "", 0, ""}
+					dato = datoDisco{"", 0, "", 0, 0, "", "", 0, ""}
+					flagP = banderaParam{false, false, false, false, false, false, false, false, false}
 					dato = analizadorParametros(parametro, i+1)
-					fmt.Println(dato)
+					//fmt.Println(dato)
 				}
 
 				switch tipo {
 				case "exec":
-					fmt.Println("ruta:" + dato.path)
+					//fmt.Println("ruta:" + dato.path)
 
 					bytesLeidos, err := ioutil.ReadFile(dato.path)
 					if err != nil {
@@ -100,11 +113,14 @@ func analizador(cadena string) {
 					}
 
 					contenido := string(bytesLeidos)
-					//fmt.Printf("El contenido del archivo es: %s", contenido)
 					analizador(contenido)
 				case "mkdisk":
-					fmt.Println("Ruta para crear el disco: " + dato.path)
-					//
+					//fmt.Println("Ruta para crear el disco: " + dato.path)
+					if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
+						fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
+						fmt.Println("")
+						crearDisco(dato.size, dato.path, dato.name, dato.unit)
+					}
 				case "rmdisk":
 					//
 				case "fdisk":
@@ -116,6 +132,8 @@ func analizador(cadena string) {
 
 				}
 			}
+			fmt.Println("Presione enter para continuar")
+			fmt.Scanln()
 		}
 
 	}
@@ -140,10 +158,10 @@ func analizadorParametros(cadena string, linea int) datoDisco {
 				//fmt.Println("\nParametro: \"" + parametro + "\"")
 				estado = 2
 			} else if cadena[i] == 32 {
-				fmt.Println("\nParametro \"" + parametro + "\" suelto en la linea: " + strconv.Itoa(linea))
+				//fmt.Println("\nParametro \"" + parametro + "\" suelto en la linea: " + strconv.Itoa(linea))
 				estado = 0
 			} else if cadena[i] == '#' {
-				fmt.Println("\nParametro \"" + parametro + "\" suelto en la linea: " + strconv.Itoa(linea))
+				//fmt.Println("\nParametro \"" + parametro + "\" suelto en la linea: " + strconv.Itoa(linea))
 				//fmt.Println("Parametros analizados")
 			} else {
 				parametro += string(cadena[i])
@@ -167,51 +185,11 @@ func analizadorParametros(cadena string, linea int) datoDisco {
 		case 4:
 			if cadena[i] == 32 {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				switch valor := strings.ToLower(parametro); valor {
-				case "path":
-					dato.path = contParam
-				case "size":
-					dato.size = contParam
-				case "name":
-					dato.name = contParam
-				case "unit":
-					dato.unit = contParam[0]
-				case "type":
-					dato.typeP = contParam[0]
-				case "fit":
-					dato.fit = contParam
-				case "delete":
-					dato.deleteP = contParam
-				case "add":
-					val, _ := strconv.Atoi(contParam)
-					dato.add = val
-				default:
-					dato.idn = contParam
-				}
+				almacenarValor(parametro, contParam)
 				estado = 0
 			} else if cadena[i] == '#' {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				switch valor := strings.ToLower(parametro); valor {
-				case "path":
-					dato.path = contParam
-				case "size":
-					dato.size = contParam
-				case "name":
-					dato.name = contParam
-				case "unit":
-					dato.unit = contParam[0]
-				case "type":
-					dato.typeP = contParam[0]
-				case "fit":
-					dato.fit = contParam
-				case "delete":
-					dato.deleteP = contParam
-				case "add":
-					val, _ := strconv.Atoi(contParam)
-					dato.add = val
-				default:
-					dato.idn = contParam
-				}
+				almacenarValor(parametro, contParam)
 				//fmt.Println("Parametros analizados")
 			} else {
 				contParam += string(cadena[i])
@@ -228,55 +206,49 @@ func analizadorParametros(cadena string, linea int) datoDisco {
 		case 6:
 			if cadena[i] == 32 {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				switch valor := strings.ToLower(parametro); valor {
-				case "path":
-					dato.path = contParam
-				case "size":
-					dato.size = contParam
-				case "name":
-					dato.name = contParam
-				case "unit":
-					dato.unit = contParam[0]
-				case "type":
-					dato.typeP = contParam[0]
-				case "fit":
-					dato.fit = contParam
-				case "delete":
-					dato.deleteP = contParam
-				case "add":
-					val, _ := strconv.Atoi(contParam)
-					dato.add = val
-				default:
-					dato.idn = contParam
-				}
+				almacenarValor(parametro, contParam)
 				estado = 0
 			} else if cadena[i] == '#' {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				switch valor := strings.ToLower(parametro); valor {
-				case "path":
-					dato.path = contParam
-				case "size":
-					dato.size = contParam
-				case "name":
-					dato.name = contParam
-				case "unit":
-					dato.unit = contParam[0]
-				case "type":
-					dato.typeP = contParam[0]
-				case "fit":
-					dato.fit = contParam
-				case "delete":
-					dato.deleteP = contParam
-				case "add":
-					val, _ := strconv.Atoi(contParam)
-					dato.add = val
-				default:
-					dato.idn = contParam
-				}
+				almacenarValor(parametro, contParam)
 				//fmt.Println("Parametros analizados")
 			}
 
 		}
 	}
 	return dato
+}
+
+func almacenarValor(parametro string, contParam string) {
+	switch valor := strings.ToLower(parametro); valor {
+	case "path":
+		flagP.pathY = true
+		dato.path = contParam
+	case "size":
+		flagP.sizeY = true
+		val, _ := strconv.Atoi(contParam)
+		dato.size = val
+	case "name":
+		flagP.nameY = true
+		dato.name = contParam
+	case "unit":
+		flagP.unitY = true
+		dato.unit = contParam[0]
+	case "type":
+		flagP.typeY = true
+		dato.typeP = contParam[0]
+	case "fit":
+		flagP.fitY = true
+		dato.fit = contParam
+	case "delete":
+		flagP.deleteY = true
+		dato.deleteP = contParam
+	case "add":
+		flagP.addY = true
+		val, _ := strconv.Atoi(contParam)
+		dato.add = val
+	default:
+		flagP.idY = true
+		dato.idn = contParam
+	}
 }
