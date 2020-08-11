@@ -45,7 +45,7 @@ func crearDisco(size int, path string, name string, unit byte) {
 				writeNextBytes(f, binario.Bytes())
 
 			} else {
-				fmt.Println("Error de unidad de tamano de disco")
+				fmt.Println("Error en el tipo de unidad de tamano de disco")
 			}
 
 		} else {
