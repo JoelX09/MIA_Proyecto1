@@ -37,6 +37,16 @@ var dato datoDisco
 var flagP banderaParam
 
 func main() {
+	/*if err := os.Chmod("/home", 0777); err != nil {
+		log.Fatal(err)
+	}*/
+	/*cmd := exec.Command("sudo chmod 777 /home")
+	err := cmd.Run()
+	if err != nil {
+		panic(err)
+	}*/
+	//log.Printf("Command finished with error: %v", err)
+
 	fmt.Println("Joel Obdulio Xicara Rios \n201403975")
 	fmt.Println("\nSistema de Archivos LWH")
 	fmt.Println("\nIngrese un comando:")
@@ -122,7 +132,23 @@ func analizador(cadena string) {
 						crearDisco(dato.size, dato.path, dato.name, dato.unit)
 					}
 				case "rmdisk":
-					//
+					fmt.Println("Desea remover el diso: " + dato.path + " [y/n]")
+					reader := bufio.NewReader(os.Stdin)
+					lectura, _ := reader.ReadString('\n')
+					eleccion := strings.TrimRight(lectura, "\n")
+					if eleccion == "y" {
+						err := os.Remove(dato.path)
+						if err != nil {
+							fmt.Printf("Error eliminando archivo: %v\n", err)
+						} else {
+							fmt.Println("Eliminado correctamente")
+						}
+					} else if eleccion == "n" {
+						fmt.Println("No se eliminara el archivo")
+					} else {
+						fmt.Println("Confirmacion invalida.")
+					}
+
 				case "fdisk":
 					//
 				case "mount":
