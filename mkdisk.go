@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"unsafe"
 )
 
 func crearDisco(size int, path string, name string, unit byte) {
@@ -77,8 +76,6 @@ func crearDisco(size int, path string, name string, unit byte) {
 			}
 			writeNextBytes(f, binario2.Bytes())
 
-			//fmt.Println(asignarMBR)
-
 		} else {
 			fmt.Println("El tamano definido para el disco debe ser mayor a cero")
 		}
@@ -86,10 +83,9 @@ func crearDisco(size int, path string, name string, unit byte) {
 		fmt.Println("No se puede crear el disco, Extension invalida.")
 	}
 
-	//leer(path + name)
-
 }
 
+/*
 func readFile(path string) {
 
 	file, err := os.Open(path)
@@ -134,8 +130,8 @@ func readFile(path string) {
 
 	fmt.Println(m2)*/
 
-}
-
+//}
+/*
 func readNextBytes(file *os.File, number int) []byte {
 	bytes := make([]byte, number)
 
@@ -145,7 +141,7 @@ func readNextBytes(file *os.File, number int) []byte {
 	}
 
 	return bytes
-}
+}*/
 
 func writeNextBytes(file *os.File, bytes []byte) {
 

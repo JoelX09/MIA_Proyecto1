@@ -158,7 +158,6 @@ func analizador(cadena string) {
 						fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 						fmt.Println("")
 						crearDisco(dato.size, dato.path, dato.name, dato.unit)
-						readFile(dato.path + dato.name)
 					}
 
 				case "rmdisk":
