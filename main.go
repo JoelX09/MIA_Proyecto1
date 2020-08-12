@@ -9,6 +9,31 @@ import (
 	"strings"
 )
 
+type mbr struct {
+	Mbrtam     int64
+	Mbrfecha   [20]byte
+	Mbrdisksig int8
+	Prt        [4]partition
+}
+
+type partition struct {
+	Partstatus byte
+	Parttype   byte
+	Partfit    byte
+	Partstart  int64
+	Partsize   int64
+	Partname   [16]byte
+}
+
+type ebr struct {
+	Partstatus byte
+	Partfit    byte
+	Partstart  int64
+	Partsize   int64
+	Partnext   int64
+	Partname   [16]byte
+}
+
 type datoDisco struct {
 	path    string
 	size    int
@@ -114,6 +139,9 @@ func analizador(cadena string) {
 				}
 
 				switch tipo {
+				case "pause":
+					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+					fmt.Scanln()
 				case "exec":
 					//fmt.Println("ruta:" + dato.path)
 
@@ -130,7 +158,9 @@ func analizador(cadena string) {
 						fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 						fmt.Println("")
 						crearDisco(dato.size, dato.path, dato.name, dato.unit)
+						readFile(dato.path + dato.name)
 					}
+
 				case "rmdisk":
 					fmt.Println("Desea remover el diso: " + dato.path + " [y/n]")
 					reader := bufio.NewReader(os.Stdin)
@@ -150,7 +180,8 @@ func analizador(cadena string) {
 					}
 
 				case "fdisk":
-					//
+					adminParticion()
+
 				case "mount":
 					//
 				case "unmount":
