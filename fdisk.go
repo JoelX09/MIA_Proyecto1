@@ -12,15 +12,17 @@ func adminParticion(fd datoDisco) {
 	listaP := list.New()
 
 	type nodoPart struct {
-		estado int8
-		num    int
-		ini    int64
-		tam    int64
-		nomb   [16]byte
+		estado     int
+		Partstatus byte
+		Parttype   byte
+		Partfit    byte
+		Partstart  int64
+		Partsize   int64
+		Partname   [16]byte
 	}
 
-	var primaria, extendida int
-	m := mbr{}
+	primaria, extendida := 0, 0
+	m := obtenerMbr(fd.path)
 	var size int = int(unsafe.Sizeof(m))
 	fmt.Println(size)
 
@@ -29,10 +31,12 @@ func adminParticion(fd datoDisco) {
 		if part.Partsize > 0 {
 			var datosPart nodoPart
 			datosPart.estado = 1
-			datosPart.num = i
-			datosPart.ini = part.Partstart
-			datosPart.tam = part.Partsize
-			datosPart.nomb = part.Partname
+			datosPart.Partstatus = part.Partstatus
+			datosPart.Parttype = part.Parttype
+			datosPart.Partfit = part.Partfit
+			datosPart.Partstart = part.Partstart
+			datosPart.Partsize = part.Partsize
+			datosPart.Partname = part.Partname
 
 			if part.Parttype == 'P' {
 				primaria++
@@ -48,7 +52,9 @@ func adminParticion(fd datoDisco) {
 	if listaP.Len() > 0 {
 		existePart = true
 		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
-
+			var temp nodoPart = ele.Value.(nodoPart)
+			if temp.Partstart == int64(size) {
+			}
 		}
 	}
 
