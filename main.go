@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
 type mbr struct {
 	Mbrtam     int64
-	Mbrfecha   [20]byte
-	Mbrdisksig int8
+	Mbrfecha   [19]byte
+	Mbrdisksig int32
 	Prt        [4]partition
 }
 
@@ -62,42 +63,58 @@ var dato datoDisco
 var flagP banderaParam
 
 func main() {
-	/*if err := os.Chmod("/home", 0777); err != nil {
-		log.Fatal(err)
-	}*/
-	/*cmd := exec.Command("sudo chmod 777 /home")
-	err := cmd.Run()
-	if err != nil {
-		panic(err)
-	}*/
-	//log.Printf("Command finished with error: %v", err)
-
 	fmt.Println("Joel Obdulio Xicara Rios \n201403975")
 	fmt.Println("\nSistema de Archivos LWH")
-	fmt.Println("\nIngrese un comando:")
+	fmt.Println("\nIngrese un comando o ingrese 'e' para salir:")
+	comando := pedirComando()
+	finalizar := 0
 
-	reader := bufio.NewReader(os.Stdin)
-	lectura, _ := reader.ReadString('|')
-	comando := strings.TrimRight(lectura, "|") //Elimino el caracter | que acepta la cadena
-	comando1 := strings.Split(comando, "\n")   //Hago split con salto si es un comando divido
-
-	temp := comando1[0]
-	if temp[0] == '#' { //Verifico si la primera linea es comentario
-		fmt.Println("\nComentario: " + temp[1:])
-	} else if len(comando1) == 2 {
-		if temp[len(temp)-2:] == "\\*" { //verifico si valida que el comando continua
-			temp = strings.ReplaceAll(temp, "\\*", "") + comando1[1] //Elmino \* y concateno el comando
-			analizador(temp)
-		} else {
-			fmt.Println("Revisar el comando ingresado")
-		}
+	if comando == "e" {
+		finalizar = 1
+	} else if comando == "x" {
+		finalizar = 0
 	} else {
-		temp1 := strings.Split(temp, "#")
+		analizador(comando)
+		finalizar = 0
+	}
+
+	for finalizar != 1 {
+		fmt.Println("\nIngrese un comando o ingrese 'e' para salir:")
+		comando = pedirComando()
+		if comando == "e" {
+			finalizar = 1
+		} else if comando == "x" {
+			finalizar = 0
+		} else {
+			analizador(comando)
+			finalizar = 0
+		}
+	}
+}
+
+func pedirComando() string {
+	reader := bufio.NewReader(os.Stdin)
+	lectura, _ := reader.ReadString('\n')
+	comando := strings.TrimRight(lectura, "\n") //Elimino el caracter | que acepta la cadena
+	if comando == "e" {                         //Verifico si la solicitud es de salida
+		fmt.Println("\nSaliendo...")
+		return comando
+	} else if comando[0] == '#' { //Verifico si la primera linea es comentario
+		fmt.Println("\nComentario: " + comando[1:])
+		return "x"
+	} else if comando[len(comando)-2:] == "\\*" { //verifico si valida que el comando continua
+		comando = strings.ReplaceAll(comando, "\\*", "") //Elmino \*
+		temp := pedirComando()                           //Solicito la continuacion del comando
+		return comando + temp
+	} else {
+		temp1 := strings.Split(comando, "#") //Verifico si el comando trae un comentario
 		if len(temp1) > 1 {
 			fmt.Println("\nComentario: " + temp1[1])
+			temp1[0] = strings.TrimRight(temp1[0], " ")
 		}
-		analizador(temp1[0])
+		return temp1[0]
 	}
+
 }
 
 func analizador(cadena string) {
@@ -127,10 +144,18 @@ func analizador(cadena string) {
 
 				fmt.Println("\nComando a ejecutar: \"" + tipo + "\"")
 				if comandoUnico == false {
-					if parametro[len(parametro)-2:] == "\\*" {
-						i++
-						parametro = strings.ReplaceAll(parametro, "\\*", "") + listado[i]
+					flag := 0
+
+					for flag != 1 {
+						if parametro[len(parametro)-2:] == "\\*" {
+							i++
+							parametro = strings.ReplaceAll(parametro, "\\*", "") + listado[i]
+							flag = 0
+						} else {
+							flag = 1
+						}
 					}
+
 					fmt.Println("Contenido: " + parametro)
 					dato = datoDisco{"", 0, "", 0, 0, "", "", 0, ""}
 					flagP = banderaParam{false, false, false, false, false, false, false, false, false}
@@ -143,14 +168,11 @@ func analizador(cadena string) {
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
 					fmt.Scanln()
 				case "exec":
-					//fmt.Println("ruta:" + dato.path)
-
-					bytesLeidos, err := ioutil.ReadFile(dato.path)
+					archivo, err := ioutil.ReadFile(dato.path)
 					if err != nil {
 						fmt.Printf("Error leyendo archivo: %v", err)
 					}
-
-					contenido := string(bytesLeidos)
+					contenido := string(archivo)
 					analizador(contenido)
 				case "mkdisk":
 					//fmt.Println("Ruta para crear el disco: " + dato.path)
@@ -179,12 +201,19 @@ func analizador(cadena string) {
 					}
 
 				case "fdisk":
-					adminParticion()
+					//fmt.Println("Ruta para crear el disco: " + dato.path)
+					/*if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
+						fmt.Printf("Se creara la particion en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
+						fmt.Println("")
+						//adminParticion(dato)
+					}*/
 
 				case "mount":
 					//
 				case "unmount":
 					//
+				default:
+					fmt.Println("El comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1))
 
 				}
 			}
@@ -241,11 +270,11 @@ func analizadorParametros(cadena string, linea int) datoDisco {
 		case 4:
 			if cadena[i] == 32 {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				almacenarValor(parametro, contParam)
+				almacenarValor(parametro, contParam, linea)
 				estado = 0
 			} else if cadena[i] == '#' {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				almacenarValor(parametro, contParam)
+				almacenarValor(parametro, contParam, linea)
 				//fmt.Println("Parametros analizados")
 			} else {
 				contParam += string(cadena[i])
@@ -262,11 +291,11 @@ func analizadorParametros(cadena string, linea int) datoDisco {
 		case 6:
 			if cadena[i] == 32 {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				almacenarValor(parametro, contParam)
+				almacenarValor(parametro, contParam, linea)
 				estado = 0
 			} else if cadena[i] == '#' {
 				//fmt.Println("Valor del Parametro: \"" + contParam + "\"")
-				almacenarValor(parametro, contParam)
+				almacenarValor(parametro, contParam, linea)
 				//fmt.Println("Parametros analizados")
 			}
 
@@ -275,8 +304,13 @@ func analizadorParametros(cadena string, linea int) datoDisco {
 	return dato
 }
 
-func almacenarValor(parametro string, contParam string) {
-	switch valor := strings.ToLower(parametro); valor {
+func almacenarValor(parametro string, contParam string, linea int) {
+	valor := strings.ToLower(parametro)
+	match, _ := regexp.MatchString("^id[0-9]", valor)
+	if match == true {
+		valor = "id"
+	}
+	switch valor {
 	case "path":
 		flagP.pathY = true
 		dato.path = contParam
@@ -303,8 +337,10 @@ func almacenarValor(parametro string, contParam string) {
 		flagP.addY = true
 		val, _ := strconv.Atoi(contParam)
 		dato.add = val
-	default:
+	case "id":
 		flagP.idY = true
 		dato.idn = contParam
+	default:
+		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))
 	}
 }
