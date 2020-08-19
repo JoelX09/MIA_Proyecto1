@@ -203,10 +203,12 @@ func analizador(cadena string) {
 
 				case "fdisk":
 					fmt.Println("Ruta del disco a utilizar: " + dato.path)
-					if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
+					if /*flagP.sizeY == true &&*/ flagP.pathY == true && flagP.nameY == true {
 						fmt.Printf("Se creara la particion en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 						fmt.Println("")
 						adminParticion(dato, flagP)
+					} else {
+						fmt.Println("Parametro obligatorio faltante.")
 					}
 
 				case "mount":

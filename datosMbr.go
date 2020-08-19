@@ -45,14 +45,12 @@ func obtenerBytes(file *os.File, number int) []byte {
 }
 
 func escribirMbr(path string, m mbr) {
-
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	//var size int = int(unsafe.Sizeof(m))
 	temp := m
 	fmt.Println("para escribir:")
 	fmt.Println(temp)
@@ -67,10 +65,8 @@ func escribirMbr(path string, m mbr) {
 }
 
 func escribirBytesMBR(file *os.File, bytes []byte) {
-
 	_, err := file.Write(bytes)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }

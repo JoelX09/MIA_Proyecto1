@@ -3,13 +3,10 @@ package main
 import (
 	"container/list"
 	"fmt"
-	"strconv"
 	"unsafe"
 )
 
 func adminParticion(fd datoDisco, fl banderaParam) {
-	listaP := list.New()
-	existePart := false
 
 	type nodoPart struct {
 		Estado     int
@@ -21,18 +18,19 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 		Partname   [16]byte
 	}
 
+	listaP := list.New()
+	existePart := false
+	var datosPart nodoPart
 	primaria, extendida := 0, 0
 	m := obtenerMbr(fd.path)
 
-	tam := m.Mbrtam
-	fmt.Println("-------------------------\n\n" + strconv.FormatInt(tam, 10) + "\n\n-------------------------")
+	//tam := m.Mbrtam
+	//fmt.Println("-------------------------\n\n" + strconv.FormatInt(tam, 10) + "\n\n-------------------------")
 
 	var size int = int(unsafe.Sizeof(m))
-	fmt.Println(size)
+	//fmt.Println(size)
 
-	var datosPart nodoPart
-
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 4; i++ { // Recorro el arreglo de particiones y construyo la lista con las existentes
 		part := m.Prt[i]
 		if part.Partstatus != -1 {
 
@@ -55,7 +53,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 		}
 	}
 
-	if listaP.Len() > 0 {
+	if listaP.Len() > 0 { // Recorro la lista para crear los espacios disponibles
 		existePart = true
 		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
 			var temp nodoPart = ele.Value.(nodoPart)
@@ -100,62 +98,105 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 			}
 
 		}
-	} //-------------------------------------------
+	}
 
 	fmt.Println("Contenido despues de generar los nodos ocupados y disponibles:")
 	for element := listaP.Front(); element != nil; element = element.Next() {
-		// do something with element.Value
+		temp := element.Value.(nodoPart)
+		if temp.Estado == 1 {
+			/*var nombre [16]byte
+			copy(nombre[:], fd.name)
+			if bytes.Compare(element.Value.(nodoPart).Partname, nombre) == 0 {
+
+			}*/
+			fmt.Println(string(temp.Partname[:]))
+		}
 		fmt.Println(element.Value)
 	}
 
-	//-----------------
+	if fl.deleteY == false && fl.addY == false { // Si son falsos es porque se va crear una nueva
 
-	if fl.deleteY == false && fl.addY == false {
-
+		unidad, tipoPart, tipoFit := true, true, false
 		var tam int64
-		if fd.unit == 'K' {
+		if fd.unit == 'K' || fd.unit == 0 || fd.unit == 'k' {
 			tam = fd.size * 1024
+		} else if fd.unit == 'M' || fd.unit == 'm' {
+			tam = fd.size * 1024 * 1024
+		} else if fd.unit == 'B' || fd.unit == 'b' {
+			tam = fd.size
+		} else {
+			unidad = false
+			fmt.Println("No se puede crear la Particion, Tipo de unidad errorneo.")
 		}
 
-		if existePart == false {
-			datosPart.Estado = 1
-			datosPart.Partstatus = 0
-			datosPart.Parttype = fd.typeP
-			copy(datosPart.Partfit[:], fd.fit)
-			datosPart.Partstart = int64(size)
-			datosPart.Partsize = tam
-			copy(datosPart.Partname[:], fd.name)
-			listaP.PushFront(datosPart)
-		} else {
-			done := false
-			for ele := listaP.Front(); ele != nil; ele = ele.Next() {
-				temp := ele.Value.(nodoPart)
-				if temp.Estado == 0 {
-					if temp.Partsize >= fd.size {
-						temp2 := ele.Prev()
+		if tam < 0 {
+			fmt.Println("El tamano de la particion debe ser mayor a cero")
+		}
 
-						temp.Estado = 1
-						temp.Partstatus = 0
-						temp.Parttype = fd.typeP
-						copy(temp.Partfit[:], fd.fit)
-						temp.Partsize = tam
-						copy(datosPart.Partname[:], fd.name)
-						listaP.Remove(ele)
-						listaP.InsertAfter(temp, temp2)
-						done = true
-						break
-					}
+		if extendida+primaria < 4 {
+
+			if dato.typeP == 'E' {
+				if extendida >= 1 {
+					fmt.Println("Ya existe una particion primaria.")
+					tipoPart = false
+				}
+			} else if dato.typeP == 'L' {
+				if extendida == 0 {
+					fmt.Println("No existe una particion Extendida para crear la particion logica.")
+					tipoPart = false
 				}
 			}
-			if done == false {
-				fmt.Println("No se pudo crear la particion")
+		} else {
+			fmt.Println("Se alcanzo el limite de particiones que puede crear")
+			tipoPart = false
+		}
+
+		if dato.fit == "BF" || dato.fit == "FF" || dato.fit == "WF" || dato.fit == "" {
+			tipoFit = true
+		} else {
+			fmt.Println("El tipo de ajuste es incorrecto")
+		}
+
+		if unidad == true && tipoPart == true && tipoFit == true && tam > 0 {
+			if existePart == false {
+				datosPart.Estado = 1
+				datosPart.Partstatus = 0
+				datosPart.Parttype = fd.typeP
+				copy(datosPart.Partfit[:], fd.fit)
+				datosPart.Partstart = int64(size)
+				datosPart.Partsize = tam
+				copy(datosPart.Partname[:], fd.name)
+				listaP.PushFront(datosPart)
+			} else {
+				done := false
+				for ele := listaP.Front(); ele != nil; ele = ele.Next() {
+					temp := ele.Value.(nodoPart)
+					if temp.Estado == 0 {
+						if temp.Partsize >= tam {
+							temp2 := ele.Prev()
+
+							temp.Estado = 1
+							temp.Partstatus = 0
+							temp.Parttype = fd.typeP
+							copy(temp.Partfit[:], fd.fit)
+							temp.Partsize = tam
+							copy(temp.Partname[:], fd.name)
+							listaP.Remove(ele)
+							listaP.InsertAfter(temp, temp2)
+							done = true
+							break
+						}
+					}
+				}
+				if done == false {
+					fmt.Println("No se pudo crear la particion")
+				}
 			}
 		}
 	}
 
 	fmt.Println("Contenido despues de insertar un particion")
 	for element := listaP.Front(); element != nil; element = element.Next() {
-		// do something with element.Value
 		fmt.Println(element.Value)
 	}
 
@@ -170,9 +211,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 
 	pos := 0
 	for element := listaP.Front(); element != nil; element = element.Next() {
-		// do something with element.Value
 		valPart := element.Value.(nodoPart)
-
 		if valPart.Estado == 1 {
 			m.Prt[pos].Partstatus = valPart.Partstatus
 			m.Prt[pos].Parttype = valPart.Parttype
@@ -182,9 +221,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 			m.Prt[pos].Partname = valPart.Partname
 			pos++
 		}
-
 	}
-
 	escribirMbr(fd.path, m)
 
 }
