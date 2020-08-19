@@ -18,17 +18,17 @@ type mbr struct {
 }
 
 type partition struct {
-	Partstatus byte
+	Partstatus int8
 	Parttype   byte
-	Partfit    byte
+	Partfit    [2]byte
 	Partstart  int64
 	Partsize   int64
 	Partname   [16]byte
 }
 
 type ebr struct {
-	Partstatus byte
-	Partfit    byte
+	Partstatus int8
+	Partfit    [2]byte
 	Partstart  int64
 	Partsize   int64
 	Partnext   int64
@@ -37,7 +37,7 @@ type ebr struct {
 
 type datoDisco struct {
 	path    string
-	size    int
+	size    int64
 	name    string
 	unit    byte
 	typeP   byte
@@ -135,6 +135,7 @@ func analizador(cadena string) {
 				}
 				temp2 := temp1[0]
 				temp2 = strings.TrimSuffix(temp2, " ")
+				temp2 = strings.TrimSuffix(temp2, "\r")
 				declaracionComando := strings.SplitN(temp2, " ", 2)
 				tipo := strings.ToLower(declaracionComando[0])
 				if len(declaracionComando) > 1 {
@@ -159,7 +160,7 @@ func analizador(cadena string) {
 					fmt.Println("Contenido: " + parametro)
 					dato = datoDisco{"", 0, "", 0, 0, "", "", 0, ""}
 					flagP = banderaParam{false, false, false, false, false, false, false, false, false}
-					dato = analizadorParametros(parametro, i+1)
+					/*dato = */ analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
 				}
 
@@ -175,7 +176,7 @@ func analizador(cadena string) {
 					contenido := string(archivo)
 					analizador(contenido)
 				case "mkdisk":
-					//fmt.Println("Ruta para crear el disco: " + dato.path)
+					fmt.Println("Ruta para crear el disco: " + dato.path)
 					if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
 						fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 						fmt.Println("")
@@ -201,12 +202,12 @@ func analizador(cadena string) {
 					}
 
 				case "fdisk":
-					//fmt.Println("Ruta para crear el disco: " + dato.path)
-					/*if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
+					fmt.Println("Ruta del disco a utilizar: " + dato.path)
+					if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
 						fmt.Printf("Se creara la particion en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 						fmt.Println("")
-						//adminParticion(dato)
-					}*/
+						adminParticion(dato, flagP)
+					}
 
 				case "mount":
 					//
@@ -225,7 +226,7 @@ func analizador(cadena string) {
 
 }
 
-func analizadorParametros(cadena string, linea int) datoDisco {
+func analizadorParametros(cadena string, linea int) /*datoDisco */ {
 	cadena += "#"
 	estado := 0
 	var parametro, contParam string
@@ -301,7 +302,7 @@ func analizadorParametros(cadena string, linea int) datoDisco {
 
 		}
 	}
-	return dato
+	//return dato
 }
 
 func almacenarValor(parametro string, contParam string, linea int) {
@@ -316,7 +317,7 @@ func almacenarValor(parametro string, contParam string, linea int) {
 		dato.path = contParam
 	case "size":
 		flagP.sizeY = true
-		val, _ := strconv.Atoi(contParam)
+		val, _ := strconv.ParseInt(contParam, 10, 64)
 		dato.size = val
 	case "name":
 		flagP.nameY = true

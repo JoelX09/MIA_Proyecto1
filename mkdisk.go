@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func crearDisco(size int, path string, name string, unit byte) {
+func crearDisco(size int64, path string, name string, unit byte) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err = os.MkdirAll(path, 0777)
 		if err != nil {
@@ -22,7 +22,7 @@ func crearDisco(size int, path string, name string, unit byte) {
 
 	temp := strings.Split(name, ".")
 	nombre := temp[0]
-	match, _ := regexp.MatchString("[A-Za-z][a-zA-Z0-9_]", nombre)
+	match, _ := regexp.MatchString("[A-Za-z][a-zA-Z0-9_]*", nombre)
 
 	if match == true && temp[1] == "dsk" {
 		if size > 0 {
@@ -61,7 +61,6 @@ func crearDisco(size int, path string, name string, unit byte) {
 						fmt.Println("binary error ", err3)
 					}
 					escribirBytes(f, binario.Bytes())
-
 				}
 
 				f.Seek(0, 0)
@@ -72,6 +71,10 @@ func crearDisco(size int, path string, name string, unit byte) {
 				fecha := time.Now().Format("2006-01-02 15:04:05")
 				fmt.Println(fecha)
 				copy(asignarMBR.Mbrfecha[:], fecha)
+
+				for i := 0; i < 4; i++ {
+					asignarMBR.Prt[i].Partstatus = -1
+				}
 
 				s := &asignarMBR
 				var binario2 bytes.Buffer
@@ -90,7 +93,7 @@ func crearDisco(size int, path string, name string, unit byte) {
 		fmt.Println("No se puede crear el disco, Extension invalida o Caracter invalido en el nombre")
 	}
 
-	//obtenerMbr(path + name)
+	obtenerMbr(path + name)
 
 }
 
