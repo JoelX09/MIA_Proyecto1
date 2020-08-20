@@ -43,7 +43,7 @@ type datoDisco struct {
 	typeP   byte
 	fit     string
 	deleteP string
-	add     int
+	add     int64
 	idn     string
 }
 
@@ -334,12 +334,16 @@ func almacenarValor(parametro string, contParam string, linea int) {
 		flagP.fitY = true
 		dato.fit = contParam
 	case "delete":
-		flagP.deleteY = true
-		dato.deleteP = contParam
+		if flagP.addY == false {
+			flagP.deleteY = true
+			dato.deleteP = contParam
+		}
 	case "add":
-		flagP.addY = true
-		val, _ := strconv.Atoi(contParam)
-		dato.add = val
+		if flagP.deleteY == false {
+			flagP.addY = true
+			val, _ := strconv.ParseInt(contParam, 10, 64)
+			dato.add = val
+		}
 	case "id":
 		flagP.idY = true
 		dato.idn = contParam

@@ -1,8 +1,14 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"container/list"
+	"encoding/binary"
 	"fmt"
+	"log"
+	"os"
+	"strings"
 	"unsafe"
 )
 
@@ -19,7 +25,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	}
 
 	listaP := list.New()
-	existePart := false
+	existePart, existeNombre := false, false
 	var datosPart nodoPart
 	primaria, extendida := 0, 0
 	m := obtenerMbr(fd.path)
@@ -102,21 +108,26 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 
 	fmt.Println("Contenido despues de generar los nodos ocupados y disponibles:")
 	for element := listaP.Front(); element != nil; element = element.Next() {
+
 		temp := element.Value.(nodoPart)
 		if temp.Estado == 1 {
-			/*var nombre [16]byte
-			copy(nombre[:], fd.name)
-			if bytes.Compare(element.Value.(nodoPart).Partname, nombre) == 0 {
-
-			}*/
-			fmt.Println(string(temp.Partname[:]))
+			nombre := string(temp.Partname[:])
+			if fd.typeP == 'L' {
+				if temp.Parttype == 'E' {
+					fmt.Println("Verificar si el nombre ya existe en las logicas")
+				}
+			} else if nombre == fd.name {
+				fmt.Println("El nombre de la nueva particion ya existe")
+				existeNombre = true
+			}
 		}
 		fmt.Println(element.Value)
 	}
 
-	if fl.deleteY == false && fl.addY == false { // Si son falsos es porque se va crear una nueva
+	if fl.deleteY == false && fl.addY == false && existeNombre == false { // Si son falsos es porque se va crear una nueva
 
 		unidad, tipoPart, tipoFit := true, true, false
+		tipoPartL := false
 		var tam int64
 		if fd.unit == 'K' || fd.unit == 0 || fd.unit == 'k' {
 			tam = fd.size * 1024
@@ -129,35 +140,49 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 			fmt.Println("No se puede crear la Particion, Tipo de unidad errorneo.")
 		}
 
-		if tam < 0 {
-			fmt.Println("El tamano de la particion debe ser mayor a cero")
+		if fd.size < 0 {
+			fmt.Println("El valor de size debe ser mayor a cero")
 		}
 
-		if extendida+primaria < 4 {
-
-			if dato.typeP == 'E' {
-				if extendida >= 1 {
-					fmt.Println("Ya existe una particion primaria.")
-					tipoPart = false
-				}
-			} else if dato.typeP == 'L' {
-				if extendida == 0 {
-					fmt.Println("No existe una particion Extendida para crear la particion logica.")
-					tipoPart = false
-				}
+		if fd.typeP == 'L' {
+			if extendida == 0 {
+				fmt.Println("No existe una particion Extendida para crear la particion logica.")
+				tipoPartL = false
+			} else {
+				tipoPartL = true
 			}
 		} else {
-			fmt.Println("Se alcanzo el limite de particiones que puede crear")
-			tipoPart = false
+			if extendida+primaria < 4 {
+
+				if fd.typeP == 'E' {
+					if extendida >= 1 {
+						fmt.Println("Ya existe una particion Extendida.")
+						tipoPart = false
+					}
+				} else if fd.typeP == 0 {
+					fmt.Println("No se declaro tipo particion")
+					fd.typeP = 'P'
+					fmt.Println(fd.typeP)
+				} else if fd.typeP != 'P' {
+					tipoPart = false
+					fmt.Println("Tipo de particion incorrecto")
+				}
+			} else {
+				fmt.Println("Se alcanzo el limite de particiones que puede crear")
+				tipoPart = false
+			}
 		}
 
-		if dato.fit == "BF" || dato.fit == "FF" || dato.fit == "WF" || dato.fit == "" {
+		if fd.fit == "BF" || fd.fit == "FF" || fd.fit == "WF" || fd.fit == "" {
 			tipoFit = true
+			if fd.fit == "" {
+				fd.fit = "WF"
+			}
 		} else {
 			fmt.Println("El tipo de ajuste es incorrecto")
 		}
 
-		if unidad == true && tipoPart == true && tipoFit == true && tam > 0 {
+		if unidad == true && tipoPart == true && tipoFit == true && fd.size > 0 && tipoPartL == false {
 			if existePart == false {
 				datosPart.Estado = 1
 				datosPart.Partstatus = 0
@@ -189,13 +214,111 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 					}
 				}
 				if done == false {
-					fmt.Println("No se pudo crear la particion")
+					fmt.Println("No se pudo crear la particion, no hay espacios disponibles o el tamano es insuficiente")
 				}
 			}
+		} else if tipoPartL == true {
+			fmt.Println("Se va a crear una logica")
+			//Codigo para crear una logica
+
+		}
+
+	}
+
+	if fl.deleteY == true {
+		econtrado := false
+		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
+			temp := ele.Value.(nodoPart)
+			tempNombre := string(temp.Partname[:])
+			if tempNombre == fd.name {
+				if strings.ToLower(fd.deleteP) == "fast" {
+					if confirmarEliminacion() == true {
+						listaP.Remove(ele)
+						fmt.Println("Particion eliminada correctamente")
+						econtrado = true
+						break
+					}
+				} else if strings.ToLower(fd.deleteP) == "full" {
+					if confirmarEliminacion() == true {
+						deleteFull(fd.path, int(temp.Partstart), int(temp.Partstart+temp.Partsize))
+						listaP.Remove(ele)
+						fmt.Println("Particion eliminada correctamente")
+						econtrado = true
+						break
+					}
+				} else {
+					fmt.Println("Valor del delete incorrecto")
+					econtrado = true
+					break
+				}
+			} else if temp.Parttype == 'E' {
+				fmt.Println("Recorrer Logicas para ver si es la que se elimina")
+
+			}
+		}
+		if econtrado == false {
+			fmt.Println("No se encontro ninguna particion con ese nombre")
+		}
+	} else if fl.addY == true {
+		econtrado := false
+		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
+			temp := ele.Value.(nodoPart)
+			tempNombre := string(temp.Partname[:])
+
+			unidad := true
+			var tam int64
+			if fd.unit == 'K' || fd.unit == 0 || fd.unit == 'k' {
+				tam = fd.add * 1024
+			} else if fd.unit == 'M' || fd.unit == 'm' {
+				tam = fd.add * 1024 * 1024
+			} else if fd.unit == 'B' || fd.unit == 'b' {
+				tam = fd.add
+			} else {
+				unidad = false
+				fmt.Println("No se puede aumentar o disminuir la Particion, Tipo de unidad errorneo.")
+			}
+
+			if tempNombre == fd.name && unidad == true {
+				tempSig := ele.Next()
+				tempSigVal := tempSig.Value.(nodoPart)
+				if fd.add > 0 {
+					if tempSigVal.Estado == 0 {
+						if temp.Partstart+temp.Partsize+tam-1 < tempSigVal.Partstart {
+							temp.Partsize = temp.Partsize + tam
+							listaP.Remove(ele)
+							listaP.InsertBefore(temp, tempSig)
+							econtrado = true
+							break
+						}
+					} else {
+						fmt.Println("NO hay espacio libre despues de la particion para aumentar tamano")
+						econtrado = true
+						break
+					}
+				} else {
+					if temp.Partsize+tam > 0 {
+						temp.Partsize = temp.Partsize + tam
+						listaP.Remove(ele)
+						listaP.InsertBefore(temp, tempSig)
+						econtrado = true
+						break
+					} else {
+						fmt.Println("NO se puede reducir la particion a un espacio negativo")
+						econtrado = true
+						break
+					}
+				}
+			} else if temp.Parttype == 'E' && unidad == true {
+				fmt.Println("Recorrer Logicas para ver si es la que se aumenta")
+
+			}
+		}
+		if econtrado == false {
+			fmt.Println("No se encontro ninguna particion con ese nombre")
 		}
 	}
 
-	fmt.Println("Contenido despues de insertar un particion")
+	fmt.Println("Contenido despues de insertar o modificar una particion")
 	for element := listaP.Front(); element != nil; element = element.Next() {
 		fmt.Println(element.Value)
 	}
@@ -224,4 +347,39 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	}
 	escribirMbr(fd.path, m)
 
+}
+
+func deleteFull(path string, inicio int, fin int) {
+	f, err := os.OpenFile(path, os.O_RDWR, 0777)
+	defer f.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var cero int8 = 0
+	var binario bytes.Buffer
+
+	for i := inicio; i < fin; i++ {
+		f.Seek(0, i)
+		err4 := binary.Write(&binario, binary.BigEndian, cero)
+		if err4 != nil {
+			fmt.Println("binary error ", err4)
+		}
+		escribirBytes(f, binario.Bytes())
+	}
+}
+
+func confirmarEliminacion() bool {
+	fmt.Println("Desea remover la particion [y/n]")
+	reader := bufio.NewReader(os.Stdin)
+	lectura, _ := reader.ReadString('\n')
+	eleccion := strings.TrimRight(lectura, "\n")
+	if eleccion == "y" {
+		return true
+	} else if eleccion == "n" {
+		fmt.Println("No se eliminara la particion")
+	} else {
+		fmt.Println("Confirmacion invalida.")
+	}
+	return false
 }
