@@ -192,6 +192,10 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 					copy(datosPart.Partname[:], fd.name)
 					listaP.PushFront(datosPart)
 					fmt.Println("Particion agregada exitosamente")
+					if fd.typeP == 'E' {
+						asignarebr := ebr{Partstatus: -1, Partnext: -1}
+						escribirEbr(fd.path, asignarebr, datosPart.Partstart)
+					}
 				} else {
 					done := false
 					for ele := listaP.Front(); ele != nil; ele = ele.Next() {
@@ -209,6 +213,10 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 								listaP.Remove(ele)
 								listaP.InsertAfter(temp, temp2)
 								fmt.Println("Particion agregada exitosamente")
+								if fd.typeP == 'E' {
+									asignarebr := ebr{Partstatus: -1, Partnext: -1}
+									escribirEbr(fd.path, asignarebr, datosPart.Partstart)
+								}
 								done = true
 								break
 							}
@@ -247,7 +255,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 						}
 					} else if strings.ToLower(fd.deleteP) == "full" {
 						if confirmarEliminacion() == true {
-							deleteFull(fd.path, temp.Partstart, temp.Partstart+temp.Partsize)
+							deleteFull(fd.path, temp.Partstart, temp.Partsize)
 							listaP.Remove(ele)
 							fmt.Println("Particion eliminada correctamente")
 							econtrado = true
@@ -380,25 +388,37 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 
 }
 
-func deleteFull(path string, inicio int64, fin int64) {
+func deleteFull(path string, inicio int64, tam int64) {
 	f, err := os.OpenFile(path, os.O_RDWR, 0777)
 	defer f.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var cero int8 = 0
 	var binario bytes.Buffer
 
 	f.Seek(inicio, 0)
-	for i := inicio; i < fin; i++ {
+	//for i := inicio; i < fin; i++ {
+	//var temptam [tam]byte
 
-		err4 := binary.Write(&binario, binary.BigEndian, cero)
-		if err4 != nil {
-			fmt.Println("binary error ", err4)
-		}
-		escribirBytes(f, binario.Bytes())
+	temptam := make([]byte, tam)
+
+	err4 := binary.Write(&binario, binary.BigEndian, temptam)
+	if err4 != nil {
+		fmt.Println("binary error ", err4)
 	}
+	escribirBytesDelete(f, binario.Bytes())
+	//}
+}
+
+func escribirBytesDelete(file *os.File, bytes []byte) {
+
+	_, err := file.Write(bytes)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func confirmarEliminacion() bool {
