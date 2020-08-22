@@ -685,41 +685,7 @@ func espaciosLL(inicioE int64, tamE int64) {
 				}
 			}
 			if actual.PartnextL == -1 && actual.EstadoL == 1 {
-				if actual.PartstartL+actual.PartsizeL < inicioE+tamE-1 {
-					var nuevo estructEBR
-					nuevo.EstadoL = 0
-					nuevo.PartstatusL = 0
-					for j := 0; j < len(nuevo.PartfitL); j++ {
-						nuevo.PartfitL[j] = 0
-					}
-					nuevo.PartstartL = actual.PartstartL + actual.PartsizeL
-					nuevo.PartsizeL = inicioE + tamE - actual.PartstartL
-					nuevo.PartnextL = -1
-					for j := 0; j < len(nuevo.PartnameL); j++ {
-						nuevo.PartnameL[j] = 0
-					}
-					listaL.InsertAfter(nuevo, ele)
-				}
-			}
-			/*anterior := ele.Prev().Value.(estructEBR)
-
-			if anterior.PartstartL+anterior.PartsizeL < actual.PartstartL {
-				var nuevo estructEBR
-				nuevo.EstadoL = 0
-				nuevo.PartstatusL = 0
-				for j := 0; j < len(nuevo.PartfitL); j++ {
-					nuevo.PartfitL[j] = 0
-				}
-				nuevo.PartstartL = anterior.PartstartL + anterior.PartsizeL
-				nuevo.PartsizeL = actual.PartstartL - nuevo.PartstartL
-				nuevo.PartnextL = actual.PartstartL
-				for j := 0; j < len(nuevo.PartnameL); j++ {
-					nuevo.PartnameL[j] = 0
-				}
-				listaL.InsertBefore(nuevo, ele)
-			}
-			if ele.Next() == nil {
-				if actual.PartstartL+actual.PartsizeL < inicioE+tamE-1 {
+				if actual.PartstartL+actual.PartsizeL < inicioE+tamE {
 					var nuevo estructEBR
 					nuevo.EstadoL = 0
 					nuevo.PartstatusL = 0
@@ -732,9 +698,9 @@ func espaciosLL(inicioE int64, tamE int64) {
 					for j := 0; j < len(nuevo.PartnameL); j++ {
 						nuevo.PartnameL[j] = 0
 					}
-					listaL.InsertBefore(nuevo, ele)
+					listaL.InsertAfter(nuevo, ele)
 				}
-			}*/
+			}
 
 		}
 	}
