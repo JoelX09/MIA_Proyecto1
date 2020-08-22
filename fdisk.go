@@ -12,30 +12,45 @@ import (
 	"unsafe"
 )
 
+type estructEBR struct {
+	EstadoL     int8
+	PartstatusL int8
+	PartfitL    [2]byte
+	PartstartL  int64
+	PartsizeL   int64
+	PartnextL   int64
+	PartnameL   [16]byte
+}
+
+type nodoPart struct {
+	Estado     int
+	Partstatus int8
+	Parttype   byte
+	Partfit    [2]byte
+	Partstart  int64
+	Partsize   int64
+	Partname   [16]byte
+}
+
+type valExt struct {
+	inicioE int64
+	tamE    int64
+}
+
+var listaL = list.New()
+var listaP = list.New()
+
 func adminParticion(fd datoDisco, fl banderaParam) {
 
-	type nodoPart struct {
-		Estado     int
-		Partstatus int8
-		Parttype   byte
-		Partfit    [2]byte
-		Partstart  int64
-		Partsize   int64
-		Partname   [16]byte
-	}
+	var valoresExt valExt
 
-	listaP := list.New()
-	existePart, existeNombrePE := false, false
+	existeNombrePE := false
 	var datosPart nodoPart
 	primaria, extendida := 0, 0
 	m := obtenerMbr(fd.path)
-
-	//tam := m.Mbrtam
-	//fmt.Println("-------------------------\n\n" + strconv.FormatInt(tam, 10) + "\n\n-------------------------")
-
 	var size int = int(unsafe.Sizeof(m))
-	//fmt.Println(size)
 
+	listaP.Init()
 	for i := 0; i < 4; i++ { // Recorro el arreglo de particiones y construyo la lista con las existentes
 		part := m.Prt[i]
 		if part.Partstatus != -1 {
@@ -59,99 +74,127 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 		}
 	}
 
-	if listaP.Len() > 0 { // Recorro la lista para crear los espacios disponibles
-		existePart = true
-		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
-			var temp nodoPart = ele.Value.(nodoPart)
-			var tempVacio nodoPart
-			if ele.Prev() == nil {
-				if temp.Partstart != int64(size) {
-					tempVacio.Estado = 0
-					tempVacio.Partstart = int64(size)
-					tempVacio.Partsize = temp.Partstart - int64(size)
-
-					listaP.InsertBefore(tempVacio, ele)
-				}
-				if ele.Next() == nil {
-					tempVacio.Estado = 0
-					tempVacio.Partstart = temp.Partstart + temp.Partsize
-					tempVacio.Partsize = m.Mbrtam - tempVacio.Partstart
-					listaP.InsertAfter(tempVacio, ele)
-				}
-			} else if ele.Next() == nil {
-				var tempAnt nodoPart = ele.Prev().Value.(nodoPart)
-				if temp.Partstart != (tempAnt.Partstart + tempAnt.Partsize) {
-					tempVacio.Estado = 0
-					tempVacio.Partstart = tempAnt.Partstart + tempAnt.Partsize
-					tempVacio.Partsize = temp.Partstart - tempVacio.Partstart
-					listaP.InsertBefore(tempVacio, ele)
-				}
-				if (temp.Partstart + temp.Partsize - 1) != m.Mbrtam-1 {
-					tempVacio.Estado = 0
-					tempVacio.Partstart = temp.Partstart + temp.Partsize
-					tempVacio.Partsize = m.Mbrtam - tempVacio.Partstart
-
-					listaP.InsertAfter(tempVacio, ele)
-				}
-			} else {
-				var tempAnt nodoPart = ele.Prev().Value.(nodoPart)
-				if temp.Partstart != (tempAnt.Partstart + tempAnt.Partsize) {
-					tempVacio.Estado = 0
-					tempVacio.Partstart = tempAnt.Partstart + tempAnt.Partsize
-					tempVacio.Partsize = temp.Partstart - tempVacio.Partstart
-					listaP.InsertBefore(tempVacio, ele)
-				}
-			}
-
-		}
-	}
-
-	fmt.Println("Contenido despues de generar los nodos ocupados y disponibles:")
-	for element := listaP.Front(); element != nil; element = element.Next() {
-
-		temp := element.Value.(nodoPart)
-		if temp.Estado == 1 {
-
-			var tempcomp [16]byte
-			copy(tempcomp[:], fd.name)
-
-			if temp.Partname == tempcomp {
-				fmt.Println("Nombres iguales") //<--------------Cambiar
-				existeNombrePE = true
-			} else {
-				fmt.Println("No son iguales los nombres") //<--------------Cambiar
-			}
-		}
-
-		fmt.Println(element.Value)
-	}
-
 	if fl.deleteY == false && fl.addY == false { // Si son falsos es porque se va crear una nueva
+
+		existePart := espaciosPEdisp(size, m)
+		existeNombrePE, valoresExt = imprimirListaPE(fd.name, false, true)
 
 		if fd.typeP == 'L' {
 			if extendida == 1 {
+
 				fmt.Println("----------\nSe va a crear una Logica\n----------")
+
+				listaL.Init()
+
+				unidad, tipoFit, tam := validarValores(fd.unit, fd.size, fd.fit)
+
+				listaLogica(fd.path, valoresExt.inicioE, valoresExt.tamE, fd.name, valoresExt.inicioE)
+
+				fmt.Println("Lista con los ebr que existen")
+				mostrarListaLogica(fd.name)
+				espaciosLL(valoresExt.inicioE, valoresExt.tamE)
+				fmt.Println("Lista con los ebr y espacios disponibles")
+				encontrado := mostrarListaLogica(fd.name)
+
+				if encontrado == false {
+					if unidad == true && tipoFit == true && fd.size > 0 {
+						if listaL.Len() == 1 {
+							datos := listaL.Front().Value.(estructEBR)
+							if datos.EstadoL == 0 {
+								if datos.PartsizeL >= tam {
+									datos.EstadoL = 1
+									datos.PartstatusL = 0
+									copy(datos.PartfitL[:], fd.fit)
+									datos.PartsizeL = tam
+									datos.PartnextL = -1
+									copy(datos.PartnameL[:], fd.name)
+									listaL.Remove(listaL.Front())
+									listaL.PushFront(datos)
+								}
+							}
+						} else if listaL.Len() == 2 {
+							actual := listaL.Front()
+							datosActual := actual.Value.(estructEBR)
+							siguiente := listaL.Back()
+							datosSiguiente := siguiente.Value.(estructEBR)
+
+							if datosSiguiente.EstadoL == 0 {
+								if datosSiguiente.PartsizeL >= tam {
+									datosSiguiente.EstadoL = 1
+									datosSiguiente.PartstatusL = 0
+									copy(datosSiguiente.PartfitL[:], fd.fit)
+									datosSiguiente.PartsizeL = tam
+									datosSiguiente.PartnextL = -1
+									copy(datosSiguiente.PartnameL[:], fd.name)
+
+									datosActual.PartnextL = datosSiguiente.PartstartL
+
+									listaL.Remove(actual)
+									listaL.PushFront(datosActual)
+									listaL.Remove(siguiente)
+									listaL.PushBack(datosSiguiente)
+								}
+							}
+						} else {
+							for ele := listaL.Front(); ele != nil; ele = ele.Next() {
+								actual := ele.Value.(estructEBR)
+								if actual.EstadoL == 0 {
+									if actual.PartsizeL >= tam {
+										if actual.PartstartL == valoresExt.inicioE {
+											actual.EstadoL = 1
+											actual.PartstatusL = 0
+											copy(actual.PartfitL[:], fd.fit)
+											actual.PartsizeL = tam
+											copy(actual.PartnameL[:], fd.name)
+
+											listaL.Remove(ele)
+											listaL.PushFront(actual)
+											break
+										} else {
+											actual.EstadoL = 1
+											actual.PartstatusL = 0
+											copy(actual.PartfitL[:], fd.fit)
+											actual.PartsizeL = tam
+											copy(actual.PartnameL[:], fd.name)
+
+											anterior := ele.Prev()
+											datosAnterior := anterior.Value.(estructEBR)
+											datosAnterior.PartnextL = actual.PartstartL
+
+											listaL.Remove(anterior)
+											apuntadorTemp := listaL.InsertBefore(datosAnterior, ele)
+
+											listaL.Remove(ele)
+											listaL.InsertAfter(actual, apuntadorTemp)
+											break
+										}
+									}
+								}
+							}
+						}
+						fmt.Println("Contenido despues de insertar una particion Logica")
+						mostrarListaLogica(fd.name)
+						fmt.Println("------------------------------------------------")
+						fmt.Println("Escribiendo EBR's")
+						fmt.Println("------------------------------------------------")
+						escribirListaEbr(fd.path)
+
+					}
+
+				} else {
+					fmt.Println("NO se puede crear la particion logica, ya existe una con ese nombre")
+				}
+
 			} else {
 				fmt.Println("----------\nNo existe una particion extendida para crear logicas\n----------")
 			}
 
-		} else if existeNombrePE == false {
-			unidad, tipoPart, tipoFit := true, true, false
-			var tam int64
-			if fd.unit == 'K' || fd.unit == 0 || fd.unit == 'k' {
-				tam = fd.size * 1024
-			} else if fd.unit == 'M' || fd.unit == 'm' {
-				tam = fd.size * 1024 * 1024
-			} else if fd.unit == 'B' || fd.unit == 'b' {
-				tam = fd.size
-			} else {
-				unidad = false
-				fmt.Println("No se puede crear la Particion, Tipo de unidad errorneo.")
-			}
+		} else if existeNombrePE == false && fd.typeP != 'L' {
+			fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
+			imprimirListaPE(fd.name, true, false)
 
-			if fd.size < 0 {
-				fmt.Println("El valor de size debe ser mayor a cero")
-			}
+			tipoPart := true
+			unidad, tipoFit, tam := validarValores(fd.unit, fd.size, fd.fit)
 
 			if extendida+primaria < 4 {
 				if fd.typeP == 'E' {
@@ -172,15 +215,6 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 				tipoPart = false
 			}
 
-			if fd.fit == "BF" || fd.fit == "FF" || fd.fit == "WF" || fd.fit == "" {
-				tipoFit = true
-				if fd.fit == "" {
-					fd.fit = "WF"
-				}
-			} else {
-				fmt.Println("El tipo de ajuste es incorrecto")
-			}
-
 			if unidad == true && tipoPart == true && tipoFit == true && fd.size > 0 {
 				if existePart == false {
 					datosPart.Estado = 1
@@ -191,10 +225,22 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 					datosPart.Partsize = tam
 					copy(datosPart.Partname[:], fd.name)
 					listaP.PushFront(datosPart)
-					fmt.Println("Particion agregada exitosamente")
+
 					if fd.typeP == 'E' {
-						asignarebr := ebr{Partstatus: -1, Partnext: -1}
-						escribirEbr(fd.path, asignarebr, datosPart.Partstart)
+						fmt.Println("-------------------")
+						fmt.Println(valoresExt.inicioE)
+						fmt.Println(datosPart.Partstart)
+						valoresExt.inicioE = datosPart.Partstart
+						valoresExt.tamE = tam
+						fmt.Println("-------------------")
+						asignarebr := ebr{Partstatus: -1, Partstart: datosPart.Partstart, Partnext: -1}
+						var sizebr int = int(unsafe.Sizeof(asignarebr))
+						if datosPart.Partsize > int64(sizebr) {
+							escribirEbr(fd.path, asignarebr, datosPart.Partstart)
+							fmt.Println("Particion agregada exitosamente")
+						} else {
+							fmt.Println("La particion no se puede crear. Tamano insuficiente para EBR")
+						}
 					}
 				} else {
 					done := false
@@ -212,12 +258,23 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 								copy(temp.Partname[:], fd.name)
 								listaP.Remove(ele)
 								listaP.InsertAfter(temp, temp2)
-								fmt.Println("Particion agregada exitosamente")
 								if fd.typeP == 'E' {
-									asignarebr := ebr{Partstatus: -1, Partnext: -1}
-									escribirEbr(fd.path, asignarebr, datosPart.Partstart)
+									fmt.Println("-------------------")
+									fmt.Println(valoresExt.inicioE)
+									fmt.Println(temp.Partstart)
+									valoresExt.inicioE = datosPart.Partstart
+									valoresExt.tamE = tam
+									fmt.Println("-------------------")
+									asignarebr := ebr{Partstatus: -1, Partstart: temp.Partstart, Partnext: -1}
+									var sizebr int = int(unsafe.Sizeof(asignarebr))
+									if temp.Partsize > int64(sizebr) {
+										escribirEbr(fd.path, asignarebr, temp.Partstart)
+										fmt.Println("Particion agregada exitosamente")
+										done = true
+									} else {
+										fmt.Println("La particion no se puede crear. Tamano insuficiente para EBR")
+									}
 								}
-								done = true
 								break
 							}
 						}
@@ -227,12 +284,22 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 					}
 				}
 			}
-		} else {
+			fmt.Println("Contenido despues de insertar una particion")
+			imprimirListaPE(fd.name, true, false)
+
+		} else if existeNombrePE == true && fd.typeP != 'L' {
 			fmt.Println("Ya existe una particion P o E con ese nombre")
+			fmt.Println("Contenido sin modificar")
+			imprimirListaPE(fd.name, true, false)
 		}
 	}
 
 	if fl.deleteY == true {
+		espaciosPEdisp(size, m)
+
+		fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
+		existeNombrePE, valoresExt = imprimirListaPE(fd.name, true, true)
+
 		econtrado := false
 		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
 			temp := ele.Value.(nodoPart)
@@ -272,7 +339,17 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 		if econtrado == false {
 			fmt.Println("No se encontro ningua particion para eliminar con el nombre: " + fd.name)
 		}
+
+		fmt.Println("Contenido despues de eliminar una particion")
+		imprimirListaPE(fd.name, true, false)
+
 	} else if fl.addY == true {
+
+		espaciosPEdisp(size, m)
+
+		fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
+		existeNombrePE, valoresExt = imprimirListaPE(fd.name, true, true)
+
 		econtrado := false
 		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
 			temp := ele.Value.(nodoPart)
@@ -297,7 +374,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 				copy(tempcomp[:], fd.name)
 
 				if temp.Parttype == 'E' {
-					fmt.Println("Recorrer Logicas para ver si es la que se elimina")
+					fmt.Println("Recorrer Logicas para ver si es la que se aumenta")
 				}
 
 				if temp.Partname == tempcomp && unidad == true {
@@ -326,7 +403,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 								econtrado = true
 								break
 							} else {
-								fmt.Println("NO hay espacio libre despues de la particion para aumentar tamano")
+								fmt.Println("NO hay espacio libre suficiente despues de la particion para aumentar tamano")
 								econtrado = true
 								break
 							}
@@ -351,11 +428,9 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 		if econtrado == false {
 			fmt.Println("No se encontro ninguna particion para aumentar con ese nombre")
 		}
-	}
 
-	fmt.Println("Contenido despues de insertar o modificar o eliminar una particion")
-	for element := listaP.Front(); element != nil; element = element.Next() {
-		fmt.Println(element.Value)
+		fmt.Println("Contenido despues modificar una particion")
+		imprimirListaPE(fd.name, true, false)
 	}
 
 	for i := 0; i < 4; i++ { //Vaciar arreglo de particiones
@@ -386,6 +461,113 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	}
 	escribirMbr(fd.path, m)
 
+}
+
+func imprimirListaPE(name string, imprimir bool, otro bool) (bool, valExt) {
+	var valoresExt valExt
+	existeNombrePE := false
+	for element := listaP.Front(); element != nil; element = element.Next() {
+
+		if otro == true {
+			temp := element.Value.(nodoPart)
+			if temp.Estado == 1 {
+
+				var tempcomp [16]byte
+				copy(tempcomp[:], name)
+
+				if temp.Parttype == 'E' {
+					valoresExt.inicioE = temp.Partstart
+					valoresExt.tamE = temp.Partsize
+				}
+
+				if temp.Partname == tempcomp {
+					existeNombrePE = true
+					fmt.Println("El nombre de la particion se econtro")
+				}
+			}
+		}
+		if imprimir == true {
+			fmt.Println(element.Value)
+		}
+	}
+	return existeNombrePE, valoresExt
+}
+
+func espaciosPEdisp(size int, m mbr) bool {
+	existePart := false
+	if listaP.Len() > 0 { // Recorro la lista para crear los espacios disponibles
+		existePart = true
+		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
+			var temp nodoPart = ele.Value.(nodoPart)
+			var tempVacio nodoPart
+			if ele.Prev() == nil {
+				if temp.Partstart != int64(size) {
+					tempVacio.Estado = 0
+					tempVacio.Partstart = int64(size)
+					tempVacio.Partsize = temp.Partstart - int64(size)
+					listaP.InsertBefore(tempVacio, ele)
+				}
+				if ele.Next() == nil {
+					tempVacio.Estado = 0
+					tempVacio.Partstart = temp.Partstart + temp.Partsize
+					tempVacio.Partsize = m.Mbrtam - tempVacio.Partstart
+					listaP.InsertAfter(tempVacio, ele)
+				}
+			} else if ele.Next() == nil {
+				var tempAnt nodoPart = ele.Prev().Value.(nodoPart)
+				if temp.Partstart != (tempAnt.Partstart + tempAnt.Partsize) {
+					tempVacio.Estado = 0
+					tempVacio.Partstart = tempAnt.Partstart + tempAnt.Partsize
+					tempVacio.Partsize = temp.Partstart - tempVacio.Partstart
+					listaP.InsertBefore(tempVacio, ele)
+				}
+				if (temp.Partstart + temp.Partsize - 1) != m.Mbrtam-1 {
+					tempVacio.Estado = 0
+					tempVacio.Partstart = temp.Partstart + temp.Partsize
+					tempVacio.Partsize = m.Mbrtam - tempVacio.Partstart
+					listaP.InsertAfter(tempVacio, ele)
+				}
+			} else {
+				var tempAnt nodoPart = ele.Prev().Value.(nodoPart)
+				if temp.Partstart != (tempAnt.Partstart + tempAnt.Partsize) {
+					tempVacio.Estado = 0
+					tempVacio.Partstart = tempAnt.Partstart + tempAnt.Partsize
+					tempVacio.Partsize = temp.Partstart - tempVacio.Partstart
+					listaP.InsertBefore(tempVacio, ele)
+				}
+			}
+		}
+	}
+	return existePart
+}
+
+func validarValores(unit byte, size int64, fit string) (bool, bool, int64) {
+	unidad, tipoFit := true, false
+	var tam int64
+	if unit == 'K' || unit == 0 || unit == 'k' {
+		tam = size * 1024
+	} else if unit == 'M' || unit == 'm' {
+		tam = size * 1024 * 1024
+	} else if unit == 'B' || unit == 'b' {
+		tam = size
+	} else {
+		unidad = false
+		fmt.Println("No se puede crear la Particion, Tipo de unidad erroneo.")
+	}
+
+	if size < 0 {
+		fmt.Println("El valor de size debe ser mayor a cero")
+	}
+
+	if fit == "BF" || fit == "FF" || fit == "WF" || fit == "" {
+		tipoFit = true
+		if fit == "" {
+			fit = "WF"
+		}
+	} else {
+		fmt.Println("El tipo de ajuste es incorrecto")
+	}
+	return unidad, tipoFit, tam
 }
 
 func deleteFull(path string, inicio int64, tam int64) {
@@ -435,4 +617,167 @@ func confirmarEliminacion() bool {
 		fmt.Println("Confirmacion invalida. No se realizara la eliminacion")
 		return false
 	}
+}
+
+var datosEBR estructEBR
+
+func listaLogica(path string, inicioE int64, tamE int64, name string, iniciEBR int64) {
+	contenidoEBR := obtenerEbr(path, iniciEBR)
+	if contenidoEBR.Partstart == inicioE {
+		if contenidoEBR.Partstatus == -1 {
+			if contenidoEBR.Partnext == -1 {
+				datosEBR.EstadoL = 0
+				contenidoEBR.Partstatus = -1 // <------------ Confirmar
+				contenidoEBR.Partsize = tamE
+			} else if contenidoEBR.Partnext != -1 {
+				datosEBR.EstadoL = 0
+				contenidoEBR.Partstatus = -1
+				contenidoEBR.Partsize = contenidoEBR.Partnext - contenidoEBR.Partstart
+			}
+
+		}
+	}
+
+	if contenidoEBR.Partstatus == 0 || contenidoEBR.Partstatus == 1 {
+		datosEBR.EstadoL = 1
+	}
+	datosEBR.PartstatusL = contenidoEBR.Partstatus
+	datosEBR.PartfitL = contenidoEBR.Partfit
+	datosEBR.PartstartL = contenidoEBR.Partstart
+	datosEBR.PartsizeL = contenidoEBR.Partsize
+	datosEBR.PartnextL = contenidoEBR.Partnext
+	datosEBR.PartnameL = contenidoEBR.Partname
+	listaL.PushBack(datosEBR)
+	if contenidoEBR.Partnext != -1 {
+		listaLogica(path, inicioE, tamE, name, contenidoEBR.Partnext)
+	}
+}
+
+func espaciosLL(inicioE int64, tamE int64) {
+	for ele := listaL.Front(); ele != nil; ele = ele.Next() {
+		actual := ele.Value.(estructEBR)
+		if listaL.Len() == 1 {
+			if actual.EstadoL == 1 {
+				var nuevo estructEBR
+				nuevo.EstadoL = 0
+				nuevo.PartstartL = actual.PartstartL + actual.PartsizeL
+				nuevo.PartsizeL = inicioE + tamE - nuevo.PartstartL
+				nuevo.PartnextL = -1
+				listaL.PushBack(nuevo)
+			}
+			break
+		} else {
+			if actual.PartnextL != -1 && actual.EstadoL == 1 {
+				if actual.PartstartL+actual.PartsizeL < actual.PartstartL {
+					var nuevo estructEBR
+					nuevo.EstadoL = 0
+					nuevo.PartstatusL = 0
+					for j := 0; j < len(nuevo.PartfitL); j++ {
+						nuevo.PartfitL[j] = 0
+					}
+					nuevo.PartstartL = actual.PartstartL + actual.PartsizeL
+					nuevo.PartsizeL = actual.PartnextL - nuevo.PartstartL
+					nuevo.PartnextL = actual.PartnextL
+					for j := 0; j < len(nuevo.PartnameL); j++ {
+						nuevo.PartnameL[j] = 0
+					}
+					listaL.InsertAfter(nuevo, ele)
+				}
+			}
+			if actual.PartnextL == -1 && actual.EstadoL == 1 {
+				if actual.PartstartL+actual.PartsizeL < inicioE+tamE-1 {
+					var nuevo estructEBR
+					nuevo.EstadoL = 0
+					nuevo.PartstatusL = 0
+					for j := 0; j < len(nuevo.PartfitL); j++ {
+						nuevo.PartfitL[j] = 0
+					}
+					nuevo.PartstartL = actual.PartstartL + actual.PartsizeL
+					nuevo.PartsizeL = inicioE + tamE - actual.PartstartL
+					nuevo.PartnextL = -1
+					for j := 0; j < len(nuevo.PartnameL); j++ {
+						nuevo.PartnameL[j] = 0
+					}
+					listaL.InsertAfter(nuevo, ele)
+				}
+			}
+			/*anterior := ele.Prev().Value.(estructEBR)
+
+			if anterior.PartstartL+anterior.PartsizeL < actual.PartstartL {
+				var nuevo estructEBR
+				nuevo.EstadoL = 0
+				nuevo.PartstatusL = 0
+				for j := 0; j < len(nuevo.PartfitL); j++ {
+					nuevo.PartfitL[j] = 0
+				}
+				nuevo.PartstartL = anterior.PartstartL + anterior.PartsizeL
+				nuevo.PartsizeL = actual.PartstartL - nuevo.PartstartL
+				nuevo.PartnextL = actual.PartstartL
+				for j := 0; j < len(nuevo.PartnameL); j++ {
+					nuevo.PartnameL[j] = 0
+				}
+				listaL.InsertBefore(nuevo, ele)
+			}
+			if ele.Next() == nil {
+				if actual.PartstartL+actual.PartsizeL < inicioE+tamE-1 {
+					var nuevo estructEBR
+					nuevo.EstadoL = 0
+					nuevo.PartstatusL = 0
+					for j := 0; j < len(nuevo.PartfitL); j++ {
+						nuevo.PartfitL[j] = 0
+					}
+					nuevo.PartstartL = actual.PartstartL + actual.PartsizeL
+					nuevo.PartsizeL = inicioE + tamE - nuevo.PartstartL
+					nuevo.PartnextL = -1
+					for j := 0; j < len(nuevo.PartnameL); j++ {
+						nuevo.PartnameL[j] = 0
+					}
+					listaL.InsertBefore(nuevo, ele)
+				}
+			}*/
+
+		}
+	}
+}
+
+func mostrarListaLogica(nombre string) bool {
+	encontrado := false
+	for ele := listaL.Front(); ele != nil; ele = ele.Next() {
+		temp := ele.Value.(estructEBR)
+		if temp.EstadoL == 1 {
+
+			var tempcomp [16]byte
+			copy(tempcomp[:], nombre)
+
+			if temp.PartnameL == tempcomp {
+				fmt.Println("Nombres iguales Logicas") //<--------------Cambiar
+				encontrado = true
+			} else {
+				fmt.Println("No son iguales los nombres Logicas") //<--------------Cambiar
+			}
+		}
+		fmt.Println(ele.Value)
+	}
+	return encontrado
+}
+
+func escribirListaEbr(path string) {
+	//encontrado := false
+	for ele := listaL.Front(); ele != nil; ele = ele.Next() {
+		temp := ele.Value.(estructEBR)
+		if temp.EstadoL == 1 {
+
+			asignarebr := ebr{}
+			asignarebr.Partstatus = temp.PartstatusL
+			asignarebr.Partfit = temp.PartfitL
+			asignarebr.Partstart = temp.PartstartL
+			asignarebr.Partsize = temp.PartsizeL
+			asignarebr.Partnext = temp.PartnextL
+			asignarebr.Partname = temp.PartnameL
+			escribirEbr(path, asignarebr, temp.PartstartL)
+
+		}
+		//fmt.Println(ele.Value)
+	}
+
 }

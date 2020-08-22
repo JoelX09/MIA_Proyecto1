@@ -30,7 +30,7 @@ func obtenerEbr(path string, pos int64) ebr {
 		log.Fatal("binary.Read failed", err)
 	}
 
-	fmt.Println(e)
+	//fmt.Println(e)
 	return e
 }
 
@@ -53,7 +53,7 @@ func escribirEbr(path string, e ebr, pos int64) {
 	}
 
 	temp := e
-	fmt.Println("para escribir:")
+	fmt.Println("EBR para escribir:")
 	fmt.Println(temp)
 	file.Seek(pos, 0)
 	s := &temp

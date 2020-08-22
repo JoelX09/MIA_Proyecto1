@@ -29,7 +29,7 @@ func obtenerMbr(path string) mbr {
 		log.Fatal("binary.Read failed", err)
 	}
 
-	fmt.Println(m)
+	//fmt.Println(m)
 	return m
 }
 
@@ -52,7 +52,7 @@ func escribirMbr(path string, m mbr) {
 	}
 
 	temp := m
-	fmt.Println("para escribir:")
+	fmt.Println("MBR para escribir:")
 	fmt.Println(temp)
 	file.Seek(0, 0)
 	s := &temp
