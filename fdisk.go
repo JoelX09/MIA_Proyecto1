@@ -295,7 +295,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	}
 
 	if fl.deleteY == true {
-		espaciosPEdisp(size, m)
+		//espaciosPEdisp(size, m)
 
 		fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
 		existeNombrePE, valoresExt = imprimirListaPE(fd.name, true, true)
@@ -308,11 +308,101 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 				var tempcomp [16]byte
 				copy(tempcomp[:], fd.name)
 
-				if temp.Parttype == 'E' {
+				if temp.Parttype == 'E' && existeNombrePE == false {
+
 					fmt.Println("Recorrer Logicas para ver si es la que se elimina")
+
+					listaL.Init()
+					listaLogica(fd.path, valoresExt.inicioE, valoresExt.tamE, fd.name, valoresExt.inicioE)
+
+					fmt.Println("Lista con los ebr que existen")
+					logicaEncontrada := mostrarListaLogica(fd.name)
+
+					if logicaEncontrada == true {
+						for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
+							tempL := eleL.Value.(estructEBR)
+							if tempL.EstadoL == 1 {
+
+								//var tempcomp [16]byte
+								//copy(tempcomp[:], fd.name)
+
+								if tempL.PartnameL == tempcomp {
+									if strings.ToLower(fd.deleteP) == "fast" {
+										if confirmarEliminacion() == true {
+											if tempL.PartstartL == valoresExt.inicioE {
+												tempL.PartstatusL = -1
+												for j := 0; j < len(tempL.PartfitL); j++ {
+													tempL.PartfitL[j] = 0
+												}
+												tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
+												for j := 0; j < len(tempL.PartnameL); j++ {
+													tempL.PartnameL[j] = 0
+												}
+												listaL.Remove(eleL)
+												listaL.PushFront(tempL)
+												fmt.Println("Particion eliminada correctamente")
+											} else {
+												tempLAnt := eleL.Prev()
+												valtempLAnt := tempLAnt.Value.(estructEBR)
+												valtempLAnt.PartnextL = tempL.PartnextL
+												listaL.Remove(tempLAnt)
+												listaL.InsertBefore(valtempLAnt, eleL)
+												listaL.Remove(eleL)
+												fmt.Println("Particion eliminada correctamente")
+											}
+											break
+										}
+									} else if strings.ToLower(fd.deleteP) == "full" {
+										if confirmarEliminacion() == true {
+											if tempL.PartstartL == valoresExt.inicioE {
+												tempL.PartstatusL = -1
+												for j := 0; j < len(tempL.PartfitL); j++ {
+													tempL.PartfitL[j] = 0
+												}
+												tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
+												for j := 0; j < len(tempL.PartnameL); j++ {
+													tempL.PartnameL[j] = 0
+												}
+												var tamEBR int64
+												tamEBR = int64(unsafe.Sizeof(ebr{}))
+												deleteFull(fd.path, tempL.PartstartL+tamEBR, tempL.PartsizeL-tempL.PartstartL+tamEBR)
+												listaL.Remove(eleL)
+												listaL.PushFront(tempL)
+												fmt.Println("Particion eliminada correctamente")
+											} else {
+												tempLAnt := eleL.Prev()
+												valtempLAnt := tempLAnt.Value.(estructEBR)
+												valtempLAnt.PartnextL = tempL.PartnextL
+												deleteFull(fd.path, tempL.PartstartL, tempL.PartsizeL)
+												listaL.Remove(tempLAnt)
+												listaL.InsertBefore(valtempLAnt, eleL)
+												listaL.Remove(eleL)
+												fmt.Println("Particion eliminada correctamente")
+											}
+											break
+										}
+									} else {
+										fmt.Println("Valor del delete incorrecto")
+										break
+									}
+									econtrado = true
+								}
+							}
+						}
+
+						fmt.Println("Contenido despues de eliminar una particion Logica")
+						mostrarListaLogica(fd.name)
+						fmt.Println("------------------------------------------------")
+						fmt.Println("Escribiendo EBR's")
+						fmt.Println("------------------------------------------------")
+						escribirListaEbr(fd.path)
+
+						break
+					}
+
 				}
 
-				if temp.Partname == tempcomp {
+				if econtrado == false && temp.Partname == tempcomp {
 					if strings.ToLower(fd.deleteP) == "fast" {
 						if confirmarEliminacion() == true {
 							listaP.Remove(ele)
@@ -354,17 +444,9 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
 			temp := ele.Value.(nodoPart)
 
-			unidad := true
-			var tam int64
-			if fd.unit == 'K' || fd.unit == 0 || fd.unit == 'k' {
-				tam = fd.add * 1024
-			} else if fd.unit == 'M' || fd.unit == 'm' {
-				tam = fd.add * 1024 * 1024
-			} else if fd.unit == 'B' || fd.unit == 'b' {
-				tam = fd.add
-			} else {
-				unidad = false
-				fmt.Println("No se puede aumentar o disminuir la Particion, Tipo de unidad errorneo.")
+			unidad, tam := validarValorAdd(fd.unit, fd.add)
+
+			if unidad == false {
 				break
 			}
 
@@ -373,8 +455,78 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 				var tempcomp [16]byte
 				copy(tempcomp[:], fd.name)
 
-				if temp.Parttype == 'E' {
+				if temp.Parttype == 'E' && existeNombrePE == false {
 					fmt.Println("Recorrer Logicas para ver si es la que se aumenta")
+
+					listaL.Init()
+					listaLogica(fd.path, valoresExt.inicioE, valoresExt.tamE, fd.name, valoresExt.inicioE)
+
+					fmt.Println("Lista con los ebr que existen")
+					mostrarListaLogica(fd.name)
+					espaciosLL(valoresExt.inicioE, valoresExt.tamE)
+					fmt.Println("Lista con los ebr y espacios disponibles")
+					logicaEncontrada := mostrarListaLogica(fd.name)
+
+					if logicaEncontrada == true {
+						for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
+							tempL := eleL.Value.(estructEBR)
+							if tempL.PartnameL == tempcomp {
+								fmt.Println("-----------------------------")
+								fmt.Println("Lo encontro")
+								var cero int64
+								cero = 0
+								fmt.Println(cero)
+								fmt.Println("-----------------------------")
+
+								tempLSig := eleL.Next()
+								tempLSigVal := tempLSig.Value.(estructEBR)
+								if fd.add >= cero {
+									fmt.Println("-----------------------------")
+									fmt.Println("Tam positivo")
+									fmt.Println("-----------------------------")
+									if tempLSigVal.EstadoL == 0 {
+										fmt.Println("-----------------------------")
+										fmt.Println("Espacio siguiente disponible")
+										fmt.Println("-----------------------------")
+										if tempL.PartstartL+tempL.PartsizeL+tam-1 < tempLSigVal.PartstartL+tempLSigVal.PartsizeL {
+											tempL.PartsizeL = tempL.PartsizeL + tam
+											listaL.Remove(eleL)
+											listaL.InsertBefore(tempL, tempLSig)
+											fmt.Println("Particion aumentada exitosamente")
+											econtrado = true
+											break
+										} else {
+											fmt.Println("NO hay espacio libre suficiente despues de la particion para aumentar tamano")
+											econtrado = true
+											break
+										}
+									}
+								} else {
+									if tempL.PartsizeL+tam > 0 {
+										tempL.PartsizeL = tempL.PartsizeL + tam
+										listaL.Remove(eleL)
+										listaL.InsertBefore(tempL, tempLSig)
+										fmt.Println("La particion se redujo")
+										econtrado = true
+										break
+									} else {
+										fmt.Println("NO se puede reducir la particion a un espacio negativo")
+										econtrado = true
+										break
+									}
+								}
+							}
+						}
+
+						fmt.Println("Contenido despues de insertar una particion Logica")
+						mostrarListaLogica(fd.name)
+						fmt.Println("------------------------------------------------")
+						fmt.Println("Escribiendo EBR's")
+						fmt.Println("------------------------------------------------")
+						escribirListaEbr(fd.path)
+
+						break
+					}
 				}
 
 				if temp.Partname == tempcomp && unidad == true {
@@ -568,6 +720,22 @@ func validarValores(unit byte, size int64, fit string) (bool, bool, int64) {
 		fmt.Println("El tipo de ajuste es incorrecto")
 	}
 	return unidad, tipoFit, tam
+}
+
+func validarValorAdd(unit byte, add int64) (bool, int64) {
+	unidad := true
+	var tam int64
+	if unit == 'K' || unit == 0 || unit == 'k' {
+		tam = add * 1024
+	} else if unit == 'M' || unit == 'm' {
+		tam = add * 1024 * 1024
+	} else if unit == 'B' || unit == 'b' {
+		tam = add
+	} else {
+		unidad = false
+		fmt.Println("No se puede aumentar o disminuir la Particion, Tipo de unidad errorneo.")
+	}
+	return unidad, tam
 }
 
 func deleteFull(path string, inicio int64, tam int64) {
