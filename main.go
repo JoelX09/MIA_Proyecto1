@@ -2,10 +2,10 @@ package main
 
 import (
 	"bufio"
-	"container/list"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -62,9 +62,12 @@ type banderaParam struct {
 
 var dato datoDisco
 var flagP banderaParam
-var listaMount = list.New()
+
+//var listaMount = list.New()
 
 func main() {
+	cmd := exec.Command("sudo", "chmod", "777", "/home")
+	cmd.Run()
 
 	fmt.Println("Joel Obdulio Xicara Rios \n201403975")
 	fmt.Println("\nSistema de Archivos LWH")
