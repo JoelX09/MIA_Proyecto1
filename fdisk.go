@@ -6,8 +6,10 @@ import (
 	"container/list"
 	"encoding/binary"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 	"unsafe"
 )
@@ -15,7 +17,7 @@ import (
 type estructEBR struct {
 	EstadoL     int8
 	PartstatusL int8
-	PartfitL    [2]byte
+	PartfitL    byte
 	PartstartL  int64
 	PartsizeL   int64
 	PartnextL   int64
@@ -26,7 +28,7 @@ type nodoPart struct {
 	Estado     int
 	Partstatus int8
 	Parttype   byte
-	Partfit    [2]byte
+	Partfit    byte
 	Partstart  int64
 	Partsize   int64
 	Partname   [16]byte
@@ -77,7 +79,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	if fl.deleteY == false && fl.addY == false { // Si son falsos es porque se va crear una nueva
 
 		existePart := espaciosPEdisp(size, m)
-		existeNombrePE, valoresExt = imprimirListaPE(fd.name, false, true)
+		existeNombrePE, valoresExt = imprimirListaPE(fd.name, true, true)
 
 		if fd.typeP == 'L' {
 			if extendida == 1 {
@@ -104,7 +106,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 								if datos.PartsizeL >= tam {
 									datos.EstadoL = 1
 									datos.PartstatusL = 0
-									copy(datos.PartfitL[:], fd.fit)
+									datos.PartfitL = fd.fit[0]
 									datos.PartsizeL = tam
 									datos.PartnextL = -1
 									copy(datos.PartnameL[:], fd.name)
@@ -122,7 +124,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 								if datosSiguiente.PartsizeL >= tam {
 									datosSiguiente.EstadoL = 1
 									datosSiguiente.PartstatusL = 0
-									copy(datosSiguiente.PartfitL[:], fd.fit)
+									datosSiguiente.PartfitL = fd.fit[0]
 									datosSiguiente.PartsizeL = tam
 									datosSiguiente.PartnextL = -1
 									copy(datosSiguiente.PartnameL[:], fd.name)
@@ -143,7 +145,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 										if actual.PartstartL == valoresExt.inicioE {
 											actual.EstadoL = 1
 											actual.PartstatusL = 0
-											copy(actual.PartfitL[:], fd.fit)
+											actual.PartfitL = fd.fit[0]
 											actual.PartsizeL = tam
 											copy(actual.PartnameL[:], fd.name)
 
@@ -153,7 +155,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 										} else {
 											actual.EstadoL = 1
 											actual.PartstatusL = 0
-											copy(actual.PartfitL[:], fd.fit)
+											actual.PartfitL = fd.fit[0]
 											actual.PartsizeL = tam
 											copy(actual.PartnameL[:], fd.name)
 
@@ -220,7 +222,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 					datosPart.Estado = 1
 					datosPart.Partstatus = 0
 					datosPart.Parttype = fd.typeP
-					copy(datosPart.Partfit[:], fd.fit)
+					datosPart.Partfit = fd.fit[0]
 					datosPart.Partstart = int64(size)
 					datosPart.Partsize = tam
 					copy(datosPart.Partname[:], fd.name)
@@ -253,7 +255,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 								temp.Estado = 1
 								temp.Partstatus = 0
 								temp.Parttype = fd.typeP
-								copy(temp.Partfit[:], fd.fit)
+								temp.Partfit = fd.fit[0]
 								temp.Partsize = tam
 								copy(temp.Partname[:], fd.name)
 								listaP.Remove(ele)
@@ -331,9 +333,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 										if confirmarEliminacion() == true {
 											if tempL.PartstartL == valoresExt.inicioE {
 												tempL.PartstatusL = -1
-												for j := 0; j < len(tempL.PartfitL); j++ {
-													tempL.PartfitL[j] = 0
-												}
+												tempL.PartfitL = 0
 												tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
 												for j := 0; j < len(tempL.PartnameL); j++ {
 													tempL.PartnameL[j] = 0
@@ -356,9 +356,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 										if confirmarEliminacion() == true {
 											if tempL.PartstartL == valoresExt.inicioE {
 												tempL.PartstatusL = -1
-												for j := 0; j < len(tempL.PartfitL); j++ {
-													tempL.PartfitL[j] = 0
-												}
+												tempL.PartfitL = 0
 												tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
 												for j := 0; j < len(tempL.PartnameL); j++ {
 													tempL.PartnameL[j] = 0
@@ -588,9 +586,7 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	for i := 0; i < 4; i++ { //Vaciar arreglo de particiones
 		m.Prt[i].Partstatus = -1
 		m.Prt[i].Parttype = 0
-		for j := 0; j < len(m.Prt[i].Partfit); j++ {
-			m.Prt[i].Partfit[j] = 0
-		}
+		m.Prt[i].Partfit = 0
 		m.Prt[i].Partstart = 0
 		m.Prt[i].Partsize = 0
 		for j := 0; j < len(m.Prt[i].Partname); j++ {
@@ -613,6 +609,37 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	}
 	escribirMbr(fd.path, m)
 
+}
+
+func crearDot() {
+	contenido := "digraph g{\n" +
+		"15->7->-3\n" +
+		"15->22->17\n" +
+		"7->10\n" +
+		"10->8\n" +
+		"22->35\n" +
+		"}"
+
+	f, err := os.Create("/home/joel/Escritorio/Prueba.dot")
+	if err != nil {
+		panic(err)
+	}
+	f.Close()
+
+	err = ioutil.WriteFile("/home/joel/Escritorio/Prueba.dot", []byte(contenido), 0777)
+	if err != nil {
+		panic(err)
+	}
+
+	cmd := exec.Command("dot", "-Tpng", "/home/joel/Escritorio/Prueba.dot", "-o", "/home/joel/Escritorio/Prueba.png")
+	cmd.Run()
+	//log.Printf("Command finished with error: %v", erro)
+
+	/*
+		cmd := exec.Command("comando)
+			cmd.Stdout = os.Stdout
+			cmd.Run()
+	*/
 }
 
 func imprimirListaPE(name string, imprimir bool, otro bool) (bool, valExt) {
@@ -840,9 +867,7 @@ func espaciosLL(inicioE int64, tamE int64) {
 					var nuevo estructEBR
 					nuevo.EstadoL = 0
 					nuevo.PartstatusL = 0
-					for j := 0; j < len(nuevo.PartfitL); j++ {
-						nuevo.PartfitL[j] = 0
-					}
+					nuevo.PartfitL = 0
 					nuevo.PartstartL = actual.PartstartL + actual.PartsizeL
 					nuevo.PartsizeL = actual.PartnextL - nuevo.PartstartL
 					nuevo.PartnextL = actual.PartnextL
@@ -857,9 +882,7 @@ func espaciosLL(inicioE int64, tamE int64) {
 					var nuevo estructEBR
 					nuevo.EstadoL = 0
 					nuevo.PartstatusL = 0
-					for j := 0; j < len(nuevo.PartfitL); j++ {
-						nuevo.PartfitL[j] = 0
-					}
+					nuevo.PartfitL = 0
 					nuevo.PartstartL = actual.PartstartL + actual.PartsizeL
 					nuevo.PartsizeL = inicioE + tamE - nuevo.PartstartL
 					nuevo.PartnextL = -1

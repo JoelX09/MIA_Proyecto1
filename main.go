@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"container/list"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -20,7 +21,7 @@ type mbr struct {
 type partition struct {
 	Partstatus int8
 	Parttype   byte
-	Partfit    [2]byte
+	Partfit    byte
 	Partstart  int64
 	Partsize   int64
 	Partname   [16]byte
@@ -28,7 +29,7 @@ type partition struct {
 
 type ebr struct {
 	Partstatus int8
-	Partfit    [2]byte
+	Partfit    byte
 	Partstart  int64
 	Partsize   int64
 	Partnext   int64
@@ -61,8 +62,10 @@ type banderaParam struct {
 
 var dato datoDisco
 var flagP banderaParam
+var listaMount = list.New()
 
 func main() {
+
 	fmt.Println("Joel Obdulio Xicara Rios \n201403975")
 	fmt.Println("\nSistema de Archivos LWH")
 	fmt.Println("\nIngrese un comando o ingrese 'e' para salir:")
@@ -95,7 +98,7 @@ func main() {
 func pedirComando() string {
 	reader := bufio.NewReader(os.Stdin)
 	lectura, _ := reader.ReadString('\n')
-	comando := strings.TrimRight(lectura, "\n") //Elimino el caracter | que acepta la cadena
+	comando := strings.TrimRight(lectura, "\n") //Elimino el caracter que acepta la cadena
 	if comando == "e" {                         //Verifico si la solicitud es de salida
 		fmt.Println("\nSaliendo...")
 		return comando
@@ -114,7 +117,6 @@ func pedirComando() string {
 		}
 		return temp1[0]
 	}
-
 }
 
 func analizador(cadena string) {
@@ -168,6 +170,7 @@ func analizador(cadena string) {
 				case "pause":
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
 					fmt.Scanln()
+
 				case "exec":
 					archivo, err := ioutil.ReadFile(dato.path)
 					if err != nil {
@@ -175,12 +178,15 @@ func analizador(cadena string) {
 					}
 					contenido := string(archivo)
 					analizador(contenido)
+
 				case "mkdisk":
 					fmt.Println("Ruta para crear el disco: " + dato.path)
 					if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
 						fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 						fmt.Println("")
 						crearDisco(dato.size, dato.path, dato.name, dato.unit)
+					} else {
+						fmt.Println("Parametro obligatorio faltante.")
 					}
 
 				case "rmdisk":
@@ -202,7 +208,6 @@ func analizador(cadena string) {
 					}
 
 				case "fdisk":
-					fmt.Println("Ruta del disco a utilizar: " + dato.path)
 					if /*flagP.sizeY == true &&*/ flagP.pathY == true && flagP.nameY == true {
 						fmt.Printf("Se creara la particion en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 						fmt.Println("")
@@ -210,9 +215,26 @@ func analizador(cadena string) {
 					} else {
 						fmt.Println("Parametro obligatorio faltante.")
 					}
+					/*fmt.Println("--------------------------------------")
+					fmt.Println("Contenido lista")
+					for ele := listaP.Front(); ele != nil; ele = ele.Next() {
+						fmt.Println(ele.Value)
+					}
+					fmt.Println("--------------------------------------")*/
 
 				case "mount":
-					//
+					if comandoUnico == false {
+						if flagP.pathY == true && flagP.nameY == true {
+							fmt.Printf("Se montara la particion: %s del disco: %s", dato.name, dato.path)
+							fmt.Println("")
+							montarParticion(dato.path, dato.name)
+						} else {
+							fmt.Println("Parametro obligatorio faltante.")
+						}
+					} else {
+						//MOstrar montadas
+					}
+
 				case "unmount":
 					//
 				default:
@@ -223,9 +245,7 @@ func analizador(cadena string) {
 			fmt.Println("Presione enter para continuar")
 			fmt.Scanln()
 		}
-
 	}
-
 }
 
 func analizadorParametros(cadena string, linea int) /*datoDisco */ {
@@ -301,7 +321,6 @@ func analizadorParametros(cadena string, linea int) /*datoDisco */ {
 				almacenarValor(parametro, contParam, linea)
 				//fmt.Println("Parametros analizados")
 			}
-
 		}
 	}
 	//return dato
