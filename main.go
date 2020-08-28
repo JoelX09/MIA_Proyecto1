@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"container/list"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -68,6 +69,9 @@ var arregloMount [26]estructDisco
 
 func main() {
 	//listaMount.Init()
+	for i := 0; i < len(arregloMount); i++ {
+		arregloMount[i].estado = 0
+	}
 	cmd := exec.Command("sudo", "chmod", "777", "/home")
 	cmd.Run()
 
@@ -237,25 +241,15 @@ func analizador(cadena string) {
 							fmt.Println("Parametro obligatorio faltante.")
 						}
 					} else {
-						for i := 0; i < len(arregloMount); i++ {
-							if arregloMount[i].estado == 1 {
-								fmt.Println("============================================================================")
-								fmt.Println("Ruta de la particion: " + arregloMount[i].Ruta)
-								idD := byte(i + 97)
-								fmt.Println("ID del disco " + string(idD))
-								for j := 0; j < len(arregloMount[i].discos); j++ {
-									if arregloMount[i].discos[j].estado == 1 {
-										fmt.Println("- - - - - - - - - - - - - - - - - ")
-										fmt.Println("Nombre de la particion: " + string(arregloMount[i].discos[j].Partname[:]))
-										fmt.Println("ID de la particion " + strconv.Itoa(j+1))
-									}
-								}
-							}
-						}
+						listaMontadas()
 					}
 
 				case "unmount":
-					//
+					if flagP.idY == true {
+						desmontar()
+					} else {
+						fmt.Println("Error en el unmount")
+					}
 				default:
 					fmt.Println("El comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1))
 
@@ -345,9 +339,11 @@ func analizadorParametros(cadena string, linea int) /*datoDisco */ {
 	//return dato
 }
 
+var listaID = list.New()
+
 func almacenarValor(parametro string, contParam string, linea int) {
 	valor := strings.ToLower(parametro)
-	match, _ := regexp.MatchString("^id[0-9]", valor)
+	match, _ := regexp.MatchString("^id[0-9]+", valor)
 	if match == true {
 		valor = "id"
 	}
@@ -385,6 +381,7 @@ func almacenarValor(parametro string, contParam string, linea int) {
 	case "id":
 		flagP.idY = true
 		dato.idn = contParam
+		listaID.PushBack(contParam)
 	default:
 		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))
 	}

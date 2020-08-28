@@ -3,17 +3,18 @@ package main
 import (
 	"container/list"
 	"fmt"
+	"strconv"
 )
 
 type estructDisco struct {
-	estado uint8
+	estado int
 	Ruta   string
 	//Letra  byte
 	discos [50]estructParticion
 }
 
 type estructParticion struct {
-	estado    uint8
+	estado    int
 	Partname  [16]byte
 	Partfit   byte
 	Partstart int64
@@ -143,4 +144,22 @@ func insertarMount(path string, disco estructDisco, particion estructParticion) 
 
 	}
 
+}
+
+func listaMontadas() {
+	for i := 0; i < len(arregloMount); i++ {
+		if arregloMount[i].estado == 1 {
+			fmt.Println("============================================================================")
+			fmt.Println("Ruta de la particion: " + arregloMount[i].Ruta)
+			idD := byte(i + 97)
+			fmt.Println("ID del disco " + string(idD))
+			for j := 0; j < len(arregloMount[i].discos); j++ {
+				if arregloMount[i].discos[j].estado == 1 {
+					fmt.Println("- - - - - - - - - - - - - - - - - ")
+					fmt.Println("Nombre de la particion: " + string(arregloMount[i].discos[j].Partname[:]))
+					fmt.Println("ID de la particion " + strconv.Itoa(j+1))
+				}
+			}
+		}
+	}
 }
