@@ -9,11 +9,13 @@ import (
 	"unsafe"
 )
 
-func obtenerMbr(path string) mbr {
+func obtenerMbr(path string) (mbr, bool) {
+	fallo := false
 	file, err := os.Open(path)
 	defer file.Close()
 	if err != nil {
-		log.Fatal(err)
+		fallo = true
+		panic(err)
 	}
 
 	m := mbr{}
@@ -30,7 +32,7 @@ func obtenerMbr(path string) mbr {
 	}
 
 	//fmt.Println(m)
-	return m
+	return m, fallo
 }
 
 func obtenerBytes(file *os.File, number int) []byte {

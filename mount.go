@@ -1,132 +1,146 @@
 package main
 
+import (
+	"container/list"
+	"fmt"
+)
+
 type estructDisco struct {
+	estado uint8
 	Ruta   string
-	Letra  byte
+	//Letra  byte
 	discos [50]estructParticion
 }
 
 type estructParticion struct {
-	PartnameL  [16]byte
-	estado     uint8
-	PartfitL   byte
-	PartstartL int64
-	PartsizeL  int64
+	estado    uint8
+	Partname  [16]byte
+	Partfit   byte
+	Partstart int64
+	Partsize  int64
+	//Partnext int64
+	//Parttype byte
 }
 
 func montarParticion(path string, name string) {
-	/*//letra := byte('a')
-	//num := 1
-	//pos := 0
+	//letra := byte('a')
+	var tempcomp [16]byte
+	copy(tempcomp[:], name)
+	fmt.Println(tempcomp)
 
-	//if listaMount.Len() != 0 {
-	//for eled := listaMount.Front(); eled != nil; eled = eled.Next() {
-	m := obtenerMbr(path)
-	crearListaMBR(m)
+	listaP, _ := listaInicialPE(path)
+	existeNombrePE, valoresExt, _ := imprimirListaPE(name, true, true, listaP)
+	existeNombreL := false
+	var discoL estructEBR
 
-	fmt.Println("-----------------------------------")
-	fmt.Println("Particiones P y E existentes")
-	existeNombrePE, valoresExt := imprimirListaPE(name, true, true)
-	fmt.Println("-----------------------------------")
-	encontrado := false
-	for ele := listaP.Front(); ele != nil; ele = ele.Next() {
-		temp := ele.Value.(nodoPart)
-		if temp.Estado == 1 {
+	if existeNombrePE == false {
+		listaNL.Init()
+		listaL := listaInicialL(path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+		existeNombreL, discoL = imprimirListaL(name, true, true, listaL)
+	}
 
-			var tempcomp [16]byte
-			copy(tempcomp[:], name)
+	if existeNombrePE == true {
+		for ele := listaP.Front(); ele != nil; ele = ele.Next() {
+			temp := ele.Value.(nodoPart)
+			if temp.Partname == tempcomp {
+				if temp.Partstatus == 0 {
+					var insertDisco estructDisco
+					var inserParticion estructParticion
 
-			if temp.Parttype == 'E' && existeNombrePE == false {
-				fmt.Println("Recorrer Logicas para ver si es la que se monta")
+					insertDisco.estado = 1
+					insertDisco.Ruta = path
+					//insertDisco.Letra = letra
 
-				listaL.Init()
-				listaLogica(path, valoresExt.inicioE, valoresExt.tamE, name, valoresExt.inicioE)
+					inserParticion.estado = 1
+					inserParticion.Partname = temp.Partname
+					inserParticion.Partfit = temp.Partfit
+					inserParticion.Partstart = temp.Partstart
+					inserParticion.Partsize = temp.Partsize
 
-				fmt.Println("-----------------------------------")
-				fmt.Println("Particiones L existentes")
-				/*logicaEncontrada :=*/ /*mostrarListaLogica(name, true, true)
-	fmt.Println("-----------------------------------")
+					insertarMount(path, insertDisco, inserParticion)
 
-	/*if logicaEncontrada == true {
-		for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
-			tempL := eleL.Value.(estructEBR)
-			//if tempL.EstadoL == 1 {
-			if tempL.PartnameL == tempcomp {
-				if listaMount.Len() != 0 {
-					for eled := listaMount.Front(); eled != nil; eled = eled.Next() {
-						tempM := eled.Value.(estructDisco)
-						letra = tempM.Letra
+					temp.Partstatus = 1
 
-						if strings.Compare(tempM.Ruta, path) == 0 {
-							for i := 1; i < len(tempM.discos); i++ {
-								if tempM.discos[i].estado == 0 {
-
-									tempM.discos[i].PartnameL = tempL.PartnameL
-									tempM.discos[i].PartfitL = tempL.PartfitL
-									tempM.discos[i].PartstartL = tempL.PartstartL
-									tempM.discos[i].PartsizeL = tempL.PartsizeL
-									break
-								}
-							}
+					if ele.Prev() == nil {
+						if ele.Next() == nil {
+							listaP.Remove(ele)
+							listaP.PushFront(temp)
 						} else {
-							if eled.Next() == nil {
-								var temporalDisco estructDisco
-								temporalDisco.Ruta = path
-								temporalDisco.Letra = letra + 1
-								temporalDisco.discos[1].estado = 1
-								temporalDisco.discos[1].PartnameL = tempL.PartnameL
-								temporalDisco.discos[1].PartfitL = tempL.PartfitL
-								temporalDisco.discos[1].PartstartL = tempL.PartstartL
-								temporalDisco.discos[1].PartsizeL = tempL.PartsizeL
-								break
-							}
+							tempSig := ele.Next()
+							listaP.Remove(ele)
+							listaP.InsertBefore(temp, tempSig)
 						}
+					} else if ele.Next() == nil {
+						//tempAnt := ele.Prev()
+						listaP.Remove(ele)
+						listaP.PushBack(temp)
+					} else {
+						tempSig := ele.Next()
+						listaP.Remove(ele)
+						listaP.InsertBefore(temp, tempSig)
 					}
-				} else {
-					var temporalDisco estructDisco
-					temporalDisco.Ruta = path
-					temporalDisco.Letra = letra
-					temporalDisco.discos[1].estado = 1
-					temporalDisco.discos[1].PartnameL = tempL.PartnameL
-					temporalDisco.discos[1].PartfitL = tempL.PartfitL
-					temporalDisco.discos[1].PartstartL = tempL.PartstartL
-					temporalDisco.discos[1].PartsizeL = tempL.PartsizeL
-					break
+					actualizarMBR(path, listaP)
+				} else if temp.Partstatus == 1 {
+					fmt.Println("La particion ya esta montada")
 				}
-
+				break
 			}
-			//}
 		}
-	}*/
-	//}
+	} else if existeNombreL == true {
+		if discoL.PartstatusL == 0 {
+			var insertDisco estructDisco
+			var inserParticion estructParticion
 
-	/*if encontrado == false && temp.Partname == tempcomp {
+			insertDisco.estado = 1
+			insertDisco.Ruta = path
+			//insertDisco.Letra = letra
 
-			}
+			inserParticion.estado = 1
+			inserParticion.Partname = discoL.PartnameL
+			inserParticion.Partfit = discoL.PartfitL
+			inserParticion.Partstart = discoL.PartstartL
+			inserParticion.Partsize = discoL.PartsizeL
 
+			insertarMount(path, insertDisco, inserParticion)
+			var listaTemp = list.New()
+			discoL.PartstatusL = 1
+			listaTemp.PushBack(discoL)
+			escribirListaEbr(path, listaTemp)
+
+		} else if discoL.PartstatusL == 1 {
+			fmt.Println("La particion ya esta montada")
 		}
+
+	} else {
+		fmt.Println("NO se encontro una particion para montar con el nombre: " + name)
 	}
-	if encontrado == false {
-		fmt.Println("NO se encontro ninguna particion con ese nombre")
-	}
-	//}
-	/*	} else {
-		var dataDisco estructDisco
-
-		var dataPartition estructParticion
-		dataPartition.PartnameL =
-		dataDisco.Ruta = path
-		dataDisco.Letra = letra
-		dataDisco.discos[pos] =
-
-	}*/
-
 }
 
-/*func varr() list.List {
-	var l1 list.List
+func insertarMount(path string, disco estructDisco, particion estructParticion) {
+	existeRuta := false
+	for i := 0; i < len(arregloMount); i++ {
+		if arregloMount[i].Ruta == path {
+			arregloDiscos := arregloMount[i].discos
+			for j := 0; i < len(arregloDiscos); j++ {
+				if arregloDiscos[j].estado == 0 {
+					arregloMount[i].discos[j] = particion
+					break
+				}
+			}
+			existeRuta = true
+			break
+		}
+	}
 
-	l1.PushFront(1)
+	if existeRuta == false {
+		for i := 0; i < len(arregloMount); i++ {
+			if arregloMount[i].estado == 0 {
+				disco.discos[0] = particion
+				arregloMount[i] = disco
+				return
+			}
+		}
 
-	return l1
-}*/
+	}
+
+}

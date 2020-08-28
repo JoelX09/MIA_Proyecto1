@@ -64,8 +64,10 @@ var dato datoDisco
 var flagP banderaParam
 
 //var listaMount = list.New()
+var arregloMount [26]estructDisco
 
 func main() {
+	//listaMount.Init()
 	cmd := exec.Command("sudo", "chmod", "777", "/home")
 	cmd.Run()
 
@@ -235,7 +237,21 @@ func analizador(cadena string) {
 							fmt.Println("Parametro obligatorio faltante.")
 						}
 					} else {
-						//MOstrar montadas
+						for i := 0; i < len(arregloMount); i++ {
+							if arregloMount[i].estado == 1 {
+								fmt.Println("============================================================================")
+								fmt.Println("Ruta de la particion: " + arregloMount[i].Ruta)
+								idD := byte(i + 97)
+								fmt.Println("ID del disco " + string(idD))
+								for j := 0; j < len(arregloMount[i].discos); j++ {
+									if arregloMount[i].discos[j].estado == 1 {
+										fmt.Println("- - - - - - - - - - - - - - - - - ")
+										fmt.Println("Nombre de la particion: " + string(arregloMount[i].discos[j].Partname[:]))
+										fmt.Println("ID de la particion " + strconv.Itoa(j+1))
+									}
+								}
+							}
+						}
 					}
 
 				case "unmount":
