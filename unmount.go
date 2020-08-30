@@ -17,7 +17,6 @@ func desmontar() {
 			fmt.Println("La estructura del ID es incorrecta")
 		}
 	}
-
 	listaID.Init()
 	fmt.Println("===========================\nLista de desmontar finalizo")
 }
@@ -25,25 +24,12 @@ func desmontar() {
 func eliminarVD(vd string) {
 	var idDisco byte
 	idDisco = vd[2]
-	//fmt.Println(idDisco)
-	//fmt.Println(string(idDisco))
 	idDisco2 := idDisco - 97
-	//fmt.Println(idDisco2)
-
-	//idD, _ := strconv.Atoi(string(idDisco2))
-	//fmt.Println(idD)
 	idP, _ := strconv.Atoi(vd[3:])
 	idP--
-	//fmt.Println(idP)
-	//idP, _ := strconv.Atoi(idParticion)
+
 	fmt.Println("vd" + string(idDisco) + strconv.Itoa(idP+1))
-	/*fmt.Println("Estado: " + strconv.Itoa(arregloMount[idDisco2].estado))
-	fmt.Println("Ruta: " + arregloMount[idDisco2].Ruta)
-	fmt.Println("EstadoParticion: " + strconv.Itoa(arregloMount[idDisco2].discos[idP].estado))
-	fmt.Println("NOmbre: " + string(arregloMount[idDisco2].discos[idP].Partname[:]))
-	fmt.Println("Inicio: " + strconv.FormatInt(arregloMount[idDisco2].discos[idP].Partstart, 10))
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()*/
+
 	if arregloMount[idDisco2].estado == 1 {
 		if arregloMount[idDisco2].discos[idP].estado == 1 {
 			name := arregloMount[idDisco2].discos[idP].Partname
@@ -77,7 +63,6 @@ func eliminarVD(vd string) {
 								listaP.InsertBefore(temp, tempSig)
 							}
 						} else if ele.Next() == nil {
-							//tempAnt := ele.Prev()
 							listaP.Remove(ele)
 							listaP.PushBack(temp)
 						} else {
@@ -98,13 +83,9 @@ func eliminarVD(vd string) {
 			var nueva estructParticion
 			arregloMount[idDisco2].discos[idP] = nueva
 			tam := 0
-			for i := 0; i < len(arregloMount); i++ {
-				if arregloMount[i].estado == 1 {
-					for j := 0; j < len(arregloMount[i].discos); j++ {
-						if arregloMount[i].discos[j].estado == 1 {
-							tam++
-						}
-					}
+			for j := 0; j < len(arregloMount[idDisco2].discos); j++ {
+				if arregloMount[idDisco2].discos[j].estado == 1 {
+					tam++
 				}
 			}
 			if tam == 0 {

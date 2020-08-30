@@ -42,8 +42,7 @@ type valExt struct {
 func listaInicialPE(path string) (*list.List, [2]int) {
 	var listaP = list.New()
 	listaP.Init()
-	m, e := obtenerMbr(path)
-	fmt.Println(e)
+	m := obtenerMbr(path)
 	var valores [2]int
 	primaria, extendida := 0, 0
 	var datosPart nodoPart
@@ -76,7 +75,7 @@ func listaInicialPE(path string) (*list.List, [2]int) {
 }
 
 func crearParticion(fd datoDisco) {
-	m, _ := obtenerMbr(fd.path)
+	m := obtenerMbr(fd.path)
 	sizeMBR := int(unsafe.Sizeof(m))
 	var existePart bool
 	var datosPart nodoPart
@@ -96,6 +95,7 @@ func crearParticion(fd datoDisco) {
 			unidad, tipoFit, tam, fit := validarValores(fd.unit, fd.size, fd.fit)
 			fd.fit = fit
 
+			listaNL.Init()
 			listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
 
 			fmt.Println("Lista con los ebr que existen")
@@ -239,12 +239,8 @@ func crearParticion(fd datoDisco) {
 				listaP.PushFront(datosPart)
 
 				if fd.typeP == 'E' {
-					fmt.Println("-------------------")
-					fmt.Println(valoresExt.inicioE)
-					fmt.Println(datosPart.Partstart)
 					valoresExt.inicioE = datosPart.Partstart
 					valoresExt.tamE = tam
-					fmt.Println("-------------------")
 					asignarebr := ebr{Partstatus: -1, Partstart: datosPart.Partstart, Partnext: -1}
 					var sizebr int = int(unsafe.Sizeof(asignarebr))
 					if datosPart.Partsize > int64(sizebr) {
@@ -270,12 +266,8 @@ func crearParticion(fd datoDisco) {
 							copy(temp.Partname[:], fd.name)
 							done = true
 							if fd.typeP == 'E' {
-								fmt.Println("-------------------")
-								fmt.Println(valoresExt.inicioE)
-								fmt.Println(temp.Partstart)
 								valoresExt.inicioE = datosPart.Partstart
 								valoresExt.tamE = tam
-								fmt.Println("-------------------")
 								asignarebr := ebr{Partstatus: -1, Partstart: temp.Partstart, Partnext: -1}
 								var sizebr int = int(unsafe.Sizeof(asignarebr))
 								if temp.Partsize > int64(sizebr) {
@@ -329,6 +321,7 @@ func eliminarParticion(fd datoDisco) {
 
 				fmt.Println("Recorrer Logicas para ver si es la que se elimina")
 
+				listaNL.Init()
 				listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
 
 				fmt.Println("Lista con los ebr que existen")
@@ -337,7 +330,6 @@ func eliminarParticion(fd datoDisco) {
 				if existeNombreL == true {
 					for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
 						tempL := eleL.Value.(estructEBR)
-						//fmt.Println(tempL)
 						if tempL.EstadoL == 1 {
 
 							if tempL.PartnameL == tempcomp {
@@ -476,7 +468,7 @@ func eliminarParticion(fd datoDisco) {
 }
 
 func aumentarParticion(fd datoDisco) {
-	m, _ := obtenerMbr(fd.path)
+	m := obtenerMbr(fd.path)
 	sizeMBR := int(unsafe.Sizeof(m))
 
 	listaP, _ := listaInicialPE(fd.path)
@@ -505,6 +497,7 @@ func aumentarParticion(fd datoDisco) {
 			if temp.Parttype == 'E' && existeNombrePE == false {
 				fmt.Println("Recorrer Logicas para ver si es la que se aumenta")
 
+				listaNL.Init()
 				listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
 
 				fmt.Println("Lista con los ebr que existen")
@@ -520,23 +513,13 @@ func aumentarParticion(fd datoDisco) {
 					for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
 						tempL := eleL.Value.(estructEBR)
 						if tempL.PartnameL == tempcomp {
-							fmt.Println("-----------------------------")
-							fmt.Println("Lo encontro")
 							var cero int64
 							cero = 0
-							fmt.Println(cero)
-							fmt.Println("-----------------------------")
 
 							tempLSig := eleL.Next()
 							tempLSigVal := tempLSig.Value.(estructEBR)
 							if fd.add >= cero {
-								fmt.Println("-----------------------------")
-								fmt.Println("Tam positivo")
-								fmt.Println("-----------------------------")
 								if tempLSigVal.EstadoL == 0 {
-									fmt.Println("-----------------------------")
-									fmt.Println("Espacio siguiente disponible")
-									fmt.Println("-----------------------------")
 									if tempL.PartstartL+tempL.PartsizeL+tam-1 < tempLSigVal.PartstartL+tempLSigVal.PartsizeL {
 										tempL.PartsizeL = tempL.PartsizeL + tam
 										listaL.Remove(eleL)
@@ -579,23 +562,13 @@ func aumentarParticion(fd datoDisco) {
 			}
 
 			if temp.Partname == tempcomp && unidad == true {
-				fmt.Println("-----------------------------")
-				fmt.Println("Lo encontro")
 				var cero int64
 				cero = 0
-				fmt.Println(cero)
-				fmt.Println("-----------------------------")
 
 				tempSig := ele.Next()
 				tempSigVal := tempSig.Value.(nodoPart)
 				if fd.add >= cero {
-					fmt.Println("-----------------------------")
-					fmt.Println("Tam positivo")
-					fmt.Println("-----------------------------")
 					if tempSigVal.Estado == 0 {
-						fmt.Println("-----------------------------")
-						fmt.Println("Espacio siguiente disponible")
-						fmt.Println("-----------------------------")
 						if temp.Partstart+temp.Partsize+tam-1 < tempSigVal.Partstart+tempSigVal.Partsize {
 							temp.Partsize = temp.Partsize + tam
 							listaP.Remove(ele)
@@ -644,7 +617,7 @@ func aumentarParticion(fd datoDisco) {
 }
 
 func actualizarMBR(path string, listaP *list.List) {
-	m, _ := obtenerMbr(path)
+	m := obtenerMbr(path)
 	for i := 0; i < 4; i++ { //Vaciar arreglo de particiones
 		m.Prt[i].Partstatus = -1
 		m.Prt[i].Parttype = 0
@@ -995,9 +968,7 @@ func imprimirListaL(name string, imprimir bool, buscarNombre bool, listaL *list.
 					nodoReturn = temp
 					encontrado = true
 				}
-			} /*else {
-				fmt.Println("No son iguales los nombres Logicas") //<--------------Cambiar
-			}*/
+			}
 		}
 
 		if imprimir == true {

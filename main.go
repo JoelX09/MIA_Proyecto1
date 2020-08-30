@@ -47,6 +47,8 @@ type datoDisco struct {
 	deleteP string
 	add     int64
 	idn     string
+	nombre  string
+	ruta    string
 }
 
 type banderaParam struct {
@@ -59,6 +61,8 @@ type banderaParam struct {
 	deleteY bool
 	addY    bool
 	idY     bool
+	nombreY bool
+	rutaY   bool
 }
 
 var dato datoDisco
@@ -169,8 +173,8 @@ func analizador(cadena string) {
 					}
 
 					fmt.Println("Contenido: " + parametro)
-					dato = datoDisco{"", 0, "", 0, 0, "", "", 0, ""}
-					flagP = banderaParam{false, false, false, false, false, false, false, false, false}
+					dato = datoDisco{"", 0, "", 0, 0, "", "", 0, "", "", ""}
+					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false}
 					/*dato = */ analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
 				}
@@ -249,6 +253,12 @@ func analizador(cadena string) {
 						desmontar()
 					} else {
 						fmt.Println("Error en el unmount")
+					}
+				case "rep":
+					if flagP.nombreY == true && flagP.pathY == true && flagP.idY == true {
+						graficar(dato.path, dato.nombre, dato.idn, dato.ruta)
+					} else {
+						fmt.Println("Parametro obligatorio faltante")
 					}
 				default:
 					fmt.Println("El comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1))
@@ -382,6 +392,12 @@ func almacenarValor(parametro string, contParam string, linea int) {
 		flagP.idY = true
 		dato.idn = contParam
 		listaID.PushBack(contParam)
+	case "nombre":
+		flagP.nombreY = true
+		dato.nombre = contParam
+	case "ruta":
+		flagP.rutaY = true
+		dato.ruta = contParam
 	default:
 		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))
 	}
