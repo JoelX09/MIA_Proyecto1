@@ -20,7 +20,7 @@ type estructParticion struct {
 	Partstart int64
 	Partsize  int64
 	//Partnext int64
-	//Parttype byte
+	Parttype byte
 }
 
 func montarParticion(path string, name string) {
@@ -57,7 +57,7 @@ func montarParticion(path string, name string) {
 					inserParticion.Partfit = temp.Partfit
 					inserParticion.Partstart = temp.Partstart
 					inserParticion.Partsize = temp.Partsize
-
+					inserParticion.Parttype = temp.Parttype
 					insertarMount(path, insertDisco, inserParticion)
 
 					temp.Partstatus = 1
@@ -101,6 +101,7 @@ func montarParticion(path string, name string) {
 			inserParticion.Partfit = discoL.PartfitL
 			inserParticion.Partstart = discoL.PartstartL
 			inserParticion.Partsize = discoL.PartsizeL
+			inserParticion.Parttype = 'L'
 
 			insertarMount(path, insertDisco, inserParticion)
 			var listaTemp = list.New()

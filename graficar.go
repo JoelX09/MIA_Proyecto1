@@ -1,17 +1,23 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
 func graficar(path string, nombre string, id string, ruta string) {
 	if nombre == "mbr" {
 		dot := graficaMBR(id)
+		pathDot, nombreDot := descomponer(path)
+		generarDOT(dot, pathDot, nombreDot)
+	} else if nombre == "disk" {
+		dot := graficaDisco(id)
 		pathDot, nombreDot := descomponer(path)
 		generarDOT(dot, pathDot, nombreDot)
 	}
@@ -87,6 +93,117 @@ func graficaMBR(vd string) string {
 					"\t</table>>];\n"
 				pos++
 			}
+
+			dot += "}"
+		} else {
+			fmt.Println("La particion indica no esta mon")
+		}
+	} else {
+		fmt.Println("EL disco proporcionado no esta montado")
+	}
+	return dot
+}
+
+func graficaDisco(vd string) string {
+	var idDisco byte
+	idDisco = vd[2]
+	idDisco2 := idDisco - 97
+	idP, _ := strconv.Atoi(vd[3:])
+	idP--
+	dot := ""
+
+	if arregloMount[idDisco2].estado == 1 {
+		if arregloMount[idDisco2].discos[idP].estado == 1 {
+			rutaDisco := arregloMount[idDisco2].Ruta
+			name := arregloMount[idDisco2].discos[idP].Partname
+			nameSt := string(name[:])
+
+			m := obtenerMbr(rutaDisco)
+			var sizeMBR int = int(unsafe.Sizeof(m))
+
+			listaP, _ := listaInicialPE(rutaDisco)
+			_, valoresExt, _ := imprimirListaPE(nameSt, false, true, listaP)
+			var listaPtemp = list.New()
+			listaPtemp.PushFrontList(listaP)
+			listaP.Init()
+			_, listaP = espaciosPEdisp(sizeMBR, m, listaPtemp)
+
+			listaNL.Init()
+			listaL := listaInicialL(rutaDisco, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+			var listaLtemp = list.New()
+			listaLtemp.PushFrontList(listaL)
+			listaL.Init()
+			listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
+			imprimirListaL("", true, false, listaL)
+
+			dot += "digraph G {\n" +
+				"\tnode [shape=plaintext]\n" +
+				"\ta [label=<\n" +
+				"\t<table border=\"1\" cellborder=\"1\" cellspacing=\"0\">\n\n"
+
+			tamDisco := m.Mbrtam - int64(sizeMBR)
+
+			dot += "		<tr>\n" +
+				"		<td>MBR</td>\n"
+			pos := 1
+			for ele := listaP.Front(); ele != nil; ele = ele.Next() {
+				temp := ele.Value.(nodoPart)
+				nombrePart := ""
+				for i := 0; i < len(temp.Partname); i++ {
+					if temp.Partname[i] != 0 {
+						nombrePart += string(temp.Partname[i])
+					}
+				}
+				porcentaje := (temp.Partsize * 100) / tamDisco
+				contenido := ""
+				if temp.Estado == 0 {
+					contenido = "Libre \n" + strconv.FormatInt(porcentaje, 10) + "%"
+				} else if temp.Estado == 1 {
+					if temp.Parttype == 'E' {
+						a := 0
+						b := 0
+						for n := listaL.Front(); n != nil; n = n.Next() {
+							a1 := n.Value.(estructEBR)
+							if a1.EstadoL == 1 {
+								a++
+							} else if a1.EstadoL == 0 {
+								b++
+							}
+						}
+						contenido = " <table>\n" +
+							"<tr><td colspan=\"" + strconv.Itoa(a*2+b) + "\">" + nombrePart + " (" + string(temp.Parttype) + ") " + strconv.FormatInt(porcentaje, 10) + "%</td></tr>" +
+							"<tr>\n"
+						for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
+							//contenido += "<td>EBR</td><td>"
+							tempL := eleL.Value.(estructEBR)
+							nombrePartL := ""
+							for i := 0; i < len(tempL.PartnameL); i++ {
+								if tempL.PartnameL[i] != 0 {
+									nombrePartL += string(tempL.PartnameL[i])
+								}
+							}
+							porcentajeL := tempL.PartsizeL * int64(100) / valoresExt.tamE
+							fmt.Println(valoresExt.tamE)
+							fmt.Println(tempL.PartsizeL)
+							//fmt.Println(math.Round(porcentajeL))
+							if tempL.EstadoL == 0 {
+								contenido += "<td>Libre \n" + strconv.FormatInt(porcentajeL, 10) + "%</td>"
+							} else if tempL.EstadoL == 1 {
+								contenido += "<td>EBR</td><td>" + nombrePartL + " \n" + strconv.FormatInt(porcentajeL, 10) + "%</td>"
+							}
+							//contenido += "</td>"
+						}
+						contenido += "</tr>" +
+							"</table>"
+					} else {
+						contenido = nombrePart + " (" + string(temp.Parttype) + ") " + strconv.FormatInt(porcentaje, 10) + "%"
+					}
+				}
+				dot += "		<td>" + contenido + "</td>\n"
+				pos++
+			}
+			dot += "		</tr>\n"
+			dot += "\t</table>>];\n"
 
 			dot += "}"
 		} else {
