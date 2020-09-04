@@ -27,17 +27,17 @@ func montarParticion(path string, name string) {
 	//letra := byte('a')
 	var tempcomp [16]byte
 	copy(tempcomp[:], name)
-	fmt.Println(tempcomp)
+	//fmt.Println(tempcomp)
 
 	listaP, _ := listaInicialPE(path)
-	existeNombrePE, valoresExt, _ := imprimirListaPE(name, true, true, listaP)
+	existeNombrePE, valoresExt, _ := imprimirListaPE(name, false, true, listaP)
 	existeNombreL := false
 	var discoL estructEBR
 
 	if existeNombrePE == false {
 		listaNL.Init()
 		listaL := listaInicialL(path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
-		existeNombreL, discoL = imprimirListaL(name, true, true, listaL)
+		existeNombreL, discoL = imprimirListaL(name, false, true, listaL)
 	}
 
 	if existeNombrePE == true {

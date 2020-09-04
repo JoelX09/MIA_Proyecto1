@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"os/exec"
 	"strconv"
@@ -134,7 +135,7 @@ func graficaDisco(vd string) string {
 			listaLtemp.PushFrontList(listaL)
 			listaL.Init()
 			listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
-			imprimirListaL("", true, false, listaL)
+			imprimirListaL("", false, false, listaL)
 
 			dot += "digraph G {\n" +
 				"\tnode [shape=plaintext]\n" +
@@ -142,6 +143,7 @@ func graficaDisco(vd string) string {
 				"\t<table border=\"1\" cellborder=\"1\" cellspacing=\"0\">\n\n"
 
 			tamDisco := m.Mbrtam - int64(sizeMBR)
+			//tamDisco64 := float64(tamDisco)
 
 			dot += "		<tr>\n" +
 				"		<td>MBR</td>\n"
@@ -154,10 +156,11 @@ func graficaDisco(vd string) string {
 						nombrePart += string(temp.Partname[i])
 					}
 				}
-				porcentaje := (temp.Partsize * 100) / tamDisco
+				porcentaje1 := (float64(temp.Partsize) * 100) / float64(tamDisco)
+				porcentaje := int(math.Round(porcentaje1))
 				contenido := ""
 				if temp.Estado == 0 {
-					contenido = "Libre \n" + strconv.FormatInt(porcentaje, 10) + "%"
+					contenido = "Libre \n" + strconv.Itoa(porcentaje) + "%"
 				} else if temp.Estado == 1 {
 					if temp.Parttype == 'E' {
 						a := 0
@@ -171,7 +174,7 @@ func graficaDisco(vd string) string {
 							}
 						}
 						contenido = " <table>\n" +
-							"<tr><td colspan=\"" + strconv.Itoa(a*2+b) + "\">" + nombrePart + " (" + string(temp.Parttype) + ") " + strconv.FormatInt(porcentaje, 10) + "%</td></tr>" +
+							"<tr><td colspan=\"" + strconv.Itoa(a*2+b) + "\">" + nombrePart + " (" + string(temp.Parttype) + ") " + strconv.Itoa(porcentaje) + "%</td></tr>" +
 							"<tr>\n"
 						for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
 							//contenido += "<td>EBR</td><td>"
@@ -182,21 +185,22 @@ func graficaDisco(vd string) string {
 									nombrePartL += string(tempL.PartnameL[i])
 								}
 							}
-							porcentajeL := tempL.PartsizeL * int64(100) / valoresExt.tamE
-							fmt.Println(valoresExt.tamE)
-							fmt.Println(tempL.PartsizeL)
+							porcentajeL1 := float64(tempL.PartsizeL) * 100 / float64(valoresExt.tamE)
+							porcentajeL := int(math.Round(porcentajeL1))
+							//fmt.Println(valoresExt.tamE)
+							//fmt.Println(tempL.PartsizeL)
 							//fmt.Println(math.Round(porcentajeL))
 							if tempL.EstadoL == 0 {
-								contenido += "<td>Libre \n" + strconv.FormatInt(porcentajeL, 10) + "%</td>"
+								contenido += "<td>Libre \n" + strconv.Itoa(porcentajeL) + "%</td>"
 							} else if tempL.EstadoL == 1 {
-								contenido += "<td>EBR</td><td>" + nombrePartL + " \n" + strconv.FormatInt(porcentajeL, 10) + "%</td>"
+								contenido += "<td>EBR</td><td>" + nombrePartL + " \n" + strconv.Itoa(porcentajeL) + "%</td>"
 							}
 							//contenido += "</td>"
 						}
 						contenido += "</tr>" +
 							"</table>"
 					} else {
-						contenido = nombrePart + " (" + string(temp.Parttype) + ") " + strconv.FormatInt(porcentaje, 10) + "%"
+						contenido = nombrePart + " (" + string(temp.Parttype) + ") " + strconv.Itoa(porcentaje) + "%"
 					}
 				}
 				dot += "		<td>" + contenido + "</td>\n"

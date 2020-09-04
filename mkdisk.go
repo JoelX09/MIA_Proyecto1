@@ -69,7 +69,7 @@ func crearDisco(size int64, path string, name string, unit byte) {
 
 				asignarMBR := mbr{Mbrtam: tam, Mbrdisksig: r.Int31()}
 				fecha := time.Now().Format("2006-01-02 15:04:05")
-				fmt.Println(fecha)
+				//fmt.Println(fecha)
 				copy(asignarMBR.Mbrfecha[:], fecha)
 
 				for i := 0; i < 4; i++ {

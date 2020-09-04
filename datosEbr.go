@@ -53,8 +53,8 @@ func escribirEbr(path string, e ebr, pos int64) {
 	}
 
 	temp := e
-	fmt.Println("EBR para escribir:")
-	fmt.Println(temp)
+	//fmt.Println("EBR para escribir:")
+	//fmt.Println(temp)
 	file.Seek(pos, 0)
 	s := &temp
 	var binario2 bytes.Buffer

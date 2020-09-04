@@ -54,8 +54,8 @@ func escribirMbr(path string, m mbr) {
 	}
 
 	temp := m
-	fmt.Println("MBR para escribir:")
-	fmt.Println(temp)
+	//fmt.Println("MBR para escribir:")
+	//fmt.Println(temp)
 	file.Seek(0, 0)
 	s := &temp
 	var binario2 bytes.Buffer

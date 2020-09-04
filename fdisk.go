@@ -98,14 +98,14 @@ func crearParticion(fd datoDisco) {
 			listaNL.Init()
 			listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
 
-			fmt.Println("Lista con los ebr que existen")
-			imprimirListaL(fd.name, true, false, listaL)
+			//fmt.Println("Lista con los ebr que existen")
+			imprimirListaL(fd.name, false, false, listaL)
 			var listaLtemp = list.New()
 			listaLtemp.PushFrontList(listaL)
 			listaL.Init()
 			listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
-			fmt.Println("Lista con los ebr y espacios disponibles")
-			existeNombreL, _ := imprimirListaL(fd.name, true, true, listaL)
+			//fmt.Println("Lista con los ebr y espacios disponibles")
+			existeNombreL, _ := imprimirListaL(fd.name, false, true, listaL)
 
 			if existeNombreL == false {
 				if unidad == true && tipoFit == true && fd.size > 0 {
@@ -183,8 +183,8 @@ func crearParticion(fd datoDisco) {
 							}
 						}
 					}
-					fmt.Println("Contenido despues de insertar una particion Logica")
-					imprimirListaL(fd.name, true, false, listaL)
+					//fmt.Println("Contenido despues de insertar una particion Logica")
+					imprimirListaL(fd.name, false, false, listaL)
 					fmt.Println("------------------------------------------------")
 					fmt.Println("Escribiendo EBR's")
 					fmt.Println("------------------------------------------------")
@@ -201,8 +201,8 @@ func crearParticion(fd datoDisco) {
 		}
 
 	} else if existeNombrePE == false && fd.typeP != 'L' {
-		fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
-		imprimirListaPE(fd.name, true, false, listaP)
+		//fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
+		imprimirListaPE(fd.name, false, false, listaP)
 
 		tipoPart := true
 		unidad, tipoFit, tam, fit := validarValores(fd.unit, fd.size, fd.fit)
@@ -292,22 +292,22 @@ func crearParticion(fd datoDisco) {
 				}
 			}
 		}
-		fmt.Println("Contenido despues de insertar una particion")
-		imprimirListaPE(fd.name, true, false, listaP)
+		//fmt.Println("Contenido despues de insertar una particion")
+		imprimirListaPE(fd.name, false, false, listaP)
 		actualizarMBR(fd.path, listaP)
 
 	} else if existeNombrePE == true && fd.typeP != 'L' {
 		fmt.Println("Ya existe una particion P o E con ese nombre")
-		fmt.Println("Contenido sin modificar")
-		imprimirListaPE(fd.name, true, false, listaP)
+		//fmt.Println("Contenido sin modificar")
+		imprimirListaPE(fd.name, false, false, listaP)
 	}
 }
 
 func eliminarParticion(fd datoDisco) {
 
 	listaP, _ := listaInicialPE(fd.path)
-	fmt.Println("Contenido de los nodos P Y E:")
-	existeNombrePE, valoresExt, _ := imprimirListaPE(fd.name, true, true, listaP)
+	//fmt.Println("Contenido de los nodos P Y E:")
+	existeNombrePE, valoresExt, _ := imprimirListaPE(fd.name, false, true, listaP)
 
 	econtrado := false
 	for ele := listaP.Front(); ele != nil; ele = ele.Next() {
@@ -319,13 +319,13 @@ func eliminarParticion(fd datoDisco) {
 
 			if temp.Parttype == 'E' && existeNombrePE == false {
 
-				fmt.Println("Recorrer Logicas para ver si es la que se elimina")
+				//fmt.Println("Recorrer Logicas para ver si es la que se elimina")
 
 				listaNL.Init()
 				listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
 
-				fmt.Println("Lista con los ebr que existen")
-				existeNombreL, _ := imprimirListaL(fd.name, true, true, listaL)
+				//fmt.Println("Lista con los ebr que existen")
+				existeNombreL, _ := imprimirListaL(fd.name, false, true, listaL)
 
 				if existeNombreL == true {
 					for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
@@ -404,8 +404,8 @@ func eliminarParticion(fd datoDisco) {
 						}
 					}
 
-					fmt.Println("Contenido despues de eliminar una particion Logica")
-					imprimirListaL(fd.name, true, false, listaL)
+					//fmt.Println("Contenido despues de eliminar una particion Logica")
+					imprimirListaL(fd.name, false, false, listaL)
 					fmt.Println("------------------------------------------------")
 					fmt.Println("Escribiendo EBR's")
 					fmt.Println("------------------------------------------------")
@@ -424,8 +424,8 @@ func eliminarParticion(fd datoDisco) {
 							fmt.Println("Particion eliminada correctamente")
 							econtrado = true
 
-							fmt.Println("Contenido despues de eliminar una particion")
-							imprimirListaPE(fd.name, true, false, listaP)
+							//fmt.Println("Contenido despues de eliminar una particion")
+							imprimirListaPE(fd.name, false, false, listaP)
 							actualizarMBR(fd.path, listaP)
 
 							break
@@ -442,8 +442,8 @@ func eliminarParticion(fd datoDisco) {
 							fmt.Println("Particion eliminada correctamente")
 							econtrado = true
 
-							fmt.Println("Contenido despues de eliminar una particion")
-							imprimirListaPE(fd.name, true, false, listaP)
+							//fmt.Println("Contenido despues de eliminar una particion")
+							imprimirListaPE(fd.name, false, false, listaP)
 							actualizarMBR(fd.path, listaP)
 
 							break
@@ -476,7 +476,7 @@ func aumentarParticion(fd datoDisco) {
 	listaPtemp.PushFrontList(listaP)
 	listaP.Init()
 	_, listaP = espaciosPEdisp(sizeMBR, m, listaPtemp)
-	fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
+	//fmt.Println("Contenido de los nodos P Y E ocupados y disponibles:")
 	existeNombrePE, valoresExt, _ := imprimirListaPE(fd.name, false, true, listaP)
 
 	econtrado := false
@@ -495,19 +495,19 @@ func aumentarParticion(fd datoDisco) {
 			copy(tempcomp[:], fd.name)
 
 			if temp.Parttype == 'E' && existeNombrePE == false {
-				fmt.Println("Recorrer Logicas para ver si es la que se aumenta")
+				//fmt.Println("Recorrer Logicas para ver si es la que se aumenta")
 
 				listaNL.Init()
 				listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
 
-				fmt.Println("Lista con los ebr que existen")
-				imprimirListaL(fd.name, true, false, listaL)
+				//fmt.Println("Lista con los ebr que existen")
+				imprimirListaL(fd.name, false, false, listaL)
 				var listaLtemp = list.New()
 				listaLtemp.PushFrontList(listaL)
 				listaL.Init()
 				listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
-				fmt.Println("Lista con los ebr y espacios disponibles")
-				existeNombreL, _ := imprimirListaL(fd.name, true, true, listaL)
+				//fmt.Println("Lista con los ebr y espacios disponibles")
+				existeNombreL, _ := imprimirListaL(fd.name, false, true, listaL)
 
 				if existeNombreL == true {
 					for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
@@ -550,8 +550,8 @@ func aumentarParticion(fd datoDisco) {
 						}
 					}
 
-					fmt.Println("Contenido despues de aumentar o disminuir una particion Logica")
-					imprimirListaL(fd.name, true, false, listaL)
+					//fmt.Println("Contenido despues de aumentar o disminuir una particion Logica")
+					imprimirListaL(fd.name, false, false, listaL)
 					fmt.Println("------------------------------------------------")
 					fmt.Println("Escribiendo EBR's")
 					fmt.Println("------------------------------------------------")
@@ -576,8 +576,8 @@ func aumentarParticion(fd datoDisco) {
 							fmt.Println("Particion aumentada exitosamente")
 							econtrado = true
 
-							fmt.Println("Contenido despues modificar una particion")
-							imprimirListaPE(fd.name, true, false, listaP)
+							//fmt.Println("Contenido despues modificar una particion")
+							imprimirListaPE(fd.name, false, false, listaP)
 							actualizarMBR(fd.path, listaP)
 
 							break
@@ -595,8 +595,8 @@ func aumentarParticion(fd datoDisco) {
 						fmt.Println("La particion se redujo")
 						econtrado = true
 
-						fmt.Println("Contenido despues modificar una particion")
-						imprimirListaPE(fd.name, true, false, listaP)
+						//fmt.Println("Contenido despues modificar una particion")
+						imprimirListaPE(fd.name, false, false, listaP)
 						actualizarMBR(fd.path, listaP)
 
 						break
