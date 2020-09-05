@@ -185,9 +185,9 @@ func crearParticion(fd datoDisco) {
 					}
 					//fmt.Println("Contenido despues de insertar una particion Logica")
 					imprimirListaL(fd.name, false, false, listaL)
-					fmt.Println("------------------------------------------------")
-					fmt.Println("Escribiendo EBR's")
-					fmt.Println("------------------------------------------------")
+					//fmt.Println("------------------------------------------------")
+					//fmt.Println("Escribiendo EBR's")
+					//fmt.Println("------------------------------------------------")
 					escribirListaEbr(fd.path, listaL)
 
 				}
@@ -406,9 +406,9 @@ func eliminarParticion(fd datoDisco) {
 
 					//fmt.Println("Contenido despues de eliminar una particion Logica")
 					imprimirListaL(fd.name, false, false, listaL)
-					fmt.Println("------------------------------------------------")
-					fmt.Println("Escribiendo EBR's")
-					fmt.Println("------------------------------------------------")
+					//fmt.Println("------------------------------------------------")
+					//fmt.Println("Escribiendo EBR's")
+					//fmt.Println("------------------------------------------------")
 					escribirListaEbr(fd.path, listaL)
 
 					break
@@ -463,7 +463,7 @@ func eliminarParticion(fd datoDisco) {
 		}
 	}
 	if econtrado == false {
-		fmt.Println("No se encontro ningua particion para eliminar con el nombre: " + fd.name)
+		fmt.Println("No se encontro ninguna particion para eliminar con el nombre: " + fd.name)
 	}
 }
 
@@ -552,9 +552,9 @@ func aumentarParticion(fd datoDisco) {
 
 					//fmt.Println("Contenido despues de aumentar o disminuir una particion Logica")
 					imprimirListaL(fd.name, false, false, listaL)
-					fmt.Println("------------------------------------------------")
-					fmt.Println("Escribiendo EBR's")
-					fmt.Println("------------------------------------------------")
+					//fmt.Println("------------------------------------------------")
+					//fmt.Println("Escribiendo EBR's")
+					//fmt.Println("------------------------------------------------")
 					escribirListaEbr(fd.path, listaL)
 
 					break

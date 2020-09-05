@@ -43,6 +43,7 @@ type datoDisco struct {
 	name    string
 	unit    byte
 	typeP   byte
+	typeFS  string
 	fit     string
 	deleteP string
 	add     int64
@@ -173,7 +174,7 @@ func analizador(cadena string) {
 					}
 
 					fmt.Println("Contenido: " + parametro)
-					dato = datoDisco{"", 0, "", 0, 0, "", "", 0, "", "", ""}
+					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", ""}
 					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false}
 					/*dato = */ analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
@@ -228,12 +229,6 @@ func analizador(cadena string) {
 					} else {
 						fmt.Println("Parametro obligatorio faltante.")
 					}
-					/*fmt.Println("--------------------------------------")
-					fmt.Println("Contenido lista")
-					for ele := listaP.Front(); ele != nil; ele = ele.Next() {
-						fmt.Println(ele.Value)
-					}
-					fmt.Println("--------------------------------------")*/
 
 				case "mount":
 					if comandoUnico == false {
@@ -257,6 +252,13 @@ func analizador(cadena string) {
 				case "rep":
 					if flagP.nombreY == true && flagP.pathY == true && flagP.idY == true {
 						graficar(dato.path, dato.nombre, dato.idn, dato.ruta)
+					} else {
+						fmt.Println("Parametro obligatorio faltante")
+					}
+
+				case "mkfs":
+					if flagP.idY == true {
+						formatearPart(dato.idn, dato.typeFS, dato.add, dato.unit)
 					} else {
 						fmt.Println("Parametro obligatorio faltante")
 					}
@@ -374,6 +376,7 @@ func almacenarValor(parametro string, contParam string, linea int) {
 	case "type":
 		flagP.typeY = true
 		dato.typeP = contParam[0]
+		dato.typeFS = contParam
 	case "fit":
 		flagP.fitY = true
 		dato.fit = contParam

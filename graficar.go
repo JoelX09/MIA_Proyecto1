@@ -21,6 +21,10 @@ func graficar(path string, nombre string, id string, ruta string) {
 		dot := graficaDisco(id)
 		pathDot, nombreDot := descomponer(path)
 		generarDOT(dot, pathDot, nombreDot)
+	} else if nombre == "sb" {
+		dot := graficasb(id)
+		pathDot, nombreDot := descomponer(path)
+		generarDOT(dot, pathDot, nombreDot)
 	}
 }
 
@@ -38,10 +42,14 @@ func graficaMBR(vd string) string {
 			name := arregloMount[idDisco2].discos[idP].Partname
 			nameSt := string(name[:])
 
-			listaP, _ := listaInicialPE(rutaDisco)
+			listaP, valoresPE := listaInicialPE(rutaDisco)
 			_, valoresExt, _ := imprimirListaPE(nameSt, false, true, listaP)
 			listaNL.Init()
-			listaL := listaInicialL(rutaDisco, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+			var listaL = list.New()
+
+			if valoresPE[1] == 1 {
+				listaL = listaInicialL(rutaDisco, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+			}
 
 			dot += "digraph G {\n" +
 				"\tnode [shape=plaintext]\n" +
@@ -72,27 +80,29 @@ func graficaMBR(vd string) string {
 			}
 			dot += "\t</table>>];\n"
 
-			pos = 1
-			for ele := listaL.Front(); ele != nil; ele = ele.Next() {
-				temp := ele.Value.(estructEBR)
-				nombrePart := ""
-				for i := 0; i < len(temp.PartnameL); i++ {
-					if temp.PartnameL[i] != 0 {
-						nombrePart += string(temp.PartnameL[i])
+			if valoresPE[1] == 1 {
+				pos = 1
+				for ele := listaL.Front(); ele != nil; ele = ele.Next() {
+					temp := ele.Value.(estructEBR)
+					nombrePart := ""
+					for i := 0; i < len(temp.PartnameL); i++ {
+						if temp.PartnameL[i] != 0 {
+							nombrePart += string(temp.PartnameL[i])
+						}
 					}
+					dot += "\n\tb" + strconv.Itoa(pos) + " [label=<\n" +
+						"\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n\n" +
+						"\t<tr><td colspan=\"2\">EBR" + strconv.Itoa(pos) + "</td></tr>\n" +
+						"		<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n" +
+						"		<tr><td><b>part_status_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartstatusL)) + "</td></tr>\n" +
+						"		<tr><td><b>part_fit_" + strconv.Itoa(pos) + "</b></td><td>" + string(temp.PartfitL) + "</td></tr>\n" +
+						"		<tr><td><b>part_start_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartstartL)) + "</td></tr>\n" +
+						"		<tr><td><b>part_size_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartsizeL)) + "</td></tr>\n" +
+						"		<tr><td><b>part_next_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartnextL)) + "</td></tr>\n" +
+						"		<tr><td><b>part_name_" + strconv.Itoa(pos) + "</b></td><td>" + nombrePart + "</td></tr>\n\n" +
+						"\t</table>>];\n"
+					pos++
 				}
-				dot += "\n\tb" + strconv.Itoa(pos) + " [label=<\n" +
-					"\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n\n" +
-					"\t<tr><td colspan=\"2\">EBR" + strconv.Itoa(pos) + "</td></tr>\n" +
-					"		<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n" +
-					"		<tr><td><b>part_status_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartstatusL)) + "</td></tr>\n" +
-					"		<tr><td><b>part_fit_" + strconv.Itoa(pos) + "</b></td><td>" + string(temp.PartfitL) + "</td></tr>\n" +
-					"		<tr><td><b>part_start_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartstartL)) + "</td></tr>\n" +
-					"		<tr><td><b>part_size_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartsizeL)) + "</td></tr>\n" +
-					"		<tr><td><b>part_next_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartnextL)) + "</td></tr>\n" +
-					"		<tr><td><b>part_name_" + strconv.Itoa(pos) + "</b></td><td>" + nombrePart + "</td></tr>\n\n" +
-					"\t</table>>];\n"
-				pos++
 			}
 
 			dot += "}"
@@ -122,7 +132,7 @@ func graficaDisco(vd string) string {
 			m := obtenerMbr(rutaDisco)
 			var sizeMBR int = int(unsafe.Sizeof(m))
 
-			listaP, _ := listaInicialPE(rutaDisco)
+			listaP, valoresPE := listaInicialPE(rutaDisco)
 			_, valoresExt, _ := imprimirListaPE(nameSt, false, true, listaP)
 			var listaPtemp = list.New()
 			listaPtemp.PushFrontList(listaP)
@@ -130,12 +140,16 @@ func graficaDisco(vd string) string {
 			_, listaP = espaciosPEdisp(sizeMBR, m, listaPtemp)
 
 			listaNL.Init()
-			listaL := listaInicialL(rutaDisco, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
-			var listaLtemp = list.New()
-			listaLtemp.PushFrontList(listaL)
-			listaL.Init()
-			listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
-			imprimirListaL("", false, false, listaL)
+			var listaL = list.New()
+
+			if valoresPE[1] == 1 {
+				listaL = listaInicialL(rutaDisco, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+				var listaLtemp = list.New()
+				listaLtemp.PushFrontList(listaL)
+				listaL.Init()
+				listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
+				imprimirListaL("", false, false, listaL)
+			}
 
 			dot += "digraph G {\n" +
 				"\tnode [shape=plaintext]\n" +
@@ -143,7 +157,6 @@ func graficaDisco(vd string) string {
 				"\t<table border=\"1\" cellborder=\"1\" cellspacing=\"0\">\n\n"
 
 			tamDisco := m.Mbrtam - int64(sizeMBR)
-			//tamDisco64 := float64(tamDisco)
 
 			dot += "		<tr>\n" +
 				"		<td>MBR</td>\n"
@@ -177,7 +190,6 @@ func graficaDisco(vd string) string {
 							"<tr><td colspan=\"" + strconv.Itoa(a*2+b) + "\">" + nombrePart + " (" + string(temp.Parttype) + ") " + strconv.Itoa(porcentaje) + "%</td></tr>" +
 							"<tr>\n"
 						for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
-							//contenido += "<td>EBR</td><td>"
 							tempL := eleL.Value.(estructEBR)
 							nombrePartL := ""
 							for i := 0; i < len(tempL.PartnameL); i++ {
@@ -187,15 +199,11 @@ func graficaDisco(vd string) string {
 							}
 							porcentajeL1 := float64(tempL.PartsizeL) * 100 / float64(valoresExt.tamE)
 							porcentajeL := int(math.Round(porcentajeL1))
-							//fmt.Println(valoresExt.tamE)
-							//fmt.Println(tempL.PartsizeL)
-							//fmt.Println(math.Round(porcentajeL))
 							if tempL.EstadoL == 0 {
 								contenido += "<td>Libre \n" + strconv.Itoa(porcentajeL) + "%</td>"
 							} else if tempL.EstadoL == 1 {
 								contenido += "<td>EBR</td><td>" + nombrePartL + " \n" + strconv.Itoa(porcentajeL) + "%</td>"
 							}
-							//contenido += "</td>"
 						}
 						contenido += "</tr>" +
 							"</table>"
@@ -210,6 +218,74 @@ func graficaDisco(vd string) string {
 			dot += "\t</table>>];\n"
 
 			dot += "}"
+		} else {
+			fmt.Println("La particion indica no esta mon")
+		}
+	} else {
+		fmt.Println("EL disco proporcionado no esta montado")
+	}
+	return dot
+}
+
+func graficasb(vd string) string {
+	var idDisco byte
+	idDisco = vd[2]
+	idDisco2 := idDisco - 97
+	idP, _ := strconv.Atoi(vd[3:])
+	idP--
+	dot := ""
+
+	if arregloMount[idDisco2].estado == 1 {
+		if arregloMount[idDisco2].discos[idP].estado == 1 {
+			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
+			rutaDisco := arregloMount[idDisco2].Ruta
+			superbloque := obtenerSB(rutaDisco, inicioPart)
+
+			nombrePart := ""
+			for i := 0; i < len(superbloque.SBnombreHd); i++ {
+				if superbloque.SBnombreHd[i] != 0 {
+					nombrePart += string(superbloque.SBnombreHd[i])
+				}
+			}
+
+			dot += "digraph G {\n" +
+				"\tnode [shape=plaintext]\n" +
+				"\ta [label=<\n" +
+				"\t<table border=\"1\" cellborder=\"1\" cellspacing=\"0\">\n\n" +
+				"		<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n" +
+				"		<tr><td><b>sb_nombre_hd</b></td><td>" + nombrePart + "</td></tr>\n" +
+				"		<tr><td><b>sb_arbol_virtual_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBavdCount, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_detalle_directorio_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBddCount, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_inodos_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBinodosCount, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_bloques_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBbloquesCount, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_arbol_virtual_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBavdFree, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_detalle_directorio_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBddFree, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_inodos_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBinodosFree, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_bloques_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBbloquesFree, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_date_creacion</b></td><td><b>" + string(superbloque.SBdateCreacion[:]) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_date_ultimo_montaje</b></td><td><b>" + string(superbloque.SBdateLastMount[:]) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_montajes_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBmontajesCount, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBAVD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapAVD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBDD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapDD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_tabla_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBINODO, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_tabla_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBapINODO, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_bloques</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBBLOQUE, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_bloques</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBLOQUE, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_ap_log</b></td><td><b>" + strconv.FormatInt(superbloque.SBapLOG, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructAVD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructDD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructINODO, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_bloque</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructBLOQUE, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitAVD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitDD, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_tabla_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitINODO, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_bloques</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitBLOQUE, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_magic_num</b></td><td><b>" + strconv.FormatInt(superbloque.SBmagicNum, 10) + "</b></td></tr>\n" +
+				"\t</table>>];\n" +
+				"}"
+
 		} else {
 			fmt.Println("La particion indica no esta mon")
 		}
@@ -244,7 +320,6 @@ func generarDOT(dot string, path string, nombre string) {
 
 	cmd := exec.Command("dot", "-Tpng", pathdot, "-o", pathimg)
 	cmd.Run()
-
 }
 
 func descomponer(path string) (string, string) {
