@@ -173,26 +173,14 @@ func formatearPart(vd string, tipo string, add int64, unit byte) {
 			superBloque.SBfirstFreeBitINODO = 0
 			superBloque.SBfirstFreeBitBLOQUE = 0
 			superBloque.SBmagicNum = 201403975
-
-			s := &superBloque
 			// --------------------------------------------------------------------
 
 			// ----- ABRO ARCHIVO PARA ESCRIBIR EL SB -----------------------------
-			file, err := os.OpenFile(rutaDisco, os.O_RDWR, 0777)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-			file.Seek(inicioPart, 0)
-			var binario2 bytes.Buffer
-			err1 := binary.Write(&binario2, binary.BigEndian, s)
-			if err1 != nil {
-				fmt.Println("SuperBloque- binary error ", err1)
-			}
-			escribirBytes(file, binario2.Bytes())
-			file.Close()
-
-			// ----------------------------------------------------------------------
+			escribirSuperBloque(rutaDisco, inicioPart, superBloque) // <-------------- Comprobar
+			// --------------------------------------------------------------------
+			escribirStructInicial(rutaDisco, superBloque) // <----------------VERIFICAR
+			// --------------------------------------------------------------------
+			crearCarpeta(vd, "/", true)
 
 		} else {
 			fmt.Println("La particion indica no esta mon")
@@ -201,6 +189,121 @@ func formatearPart(vd string, tipo string, add int64, unit byte) {
 		fmt.Println("EL disco proporcionado no esta montado")
 	}
 
+}
+
+func escribirSuperBloque(path string, inicioPart int64, super sb) {
+	superBloque := super
+	s := &superBloque
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Seek(inicioPart, 0)
+	var binario2 bytes.Buffer
+	err1 := binary.Write(&binario2, binary.BigEndian, s)
+	if err1 != nil {
+		fmt.Println("SuperBloque- binary error ", err1)
+	}
+	escribirBytes(file, binario2.Bytes())
+	file.Close()
+}
+
+func escribirStructAVD(path string, posAVD int64, arbol avd) {
+	ar := arbol
+	a := &ar
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Seek(posAVD, 0)
+	var binario2 bytes.Buffer
+	err1 := binary.Write(&binario2, binary.BigEndian, a)
+	if err1 != nil {
+		fmt.Println("SuperBloque- binary error ", err1)
+	}
+	escribirBytes(file, binario2.Bytes())
+	file.Close()
+}
+
+func escribirStructDD(path string, posDD int64, detalle dd) {
+	dir := detalle
+	d := &dir
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Seek(posDD, 0)
+	var binario2 bytes.Buffer
+	err1 := binary.Write(&binario2, binary.BigEndian, d)
+	if err1 != nil {
+		fmt.Println("SuperBloque- binary error ", err1)
+	}
+	escribirBytes(file, binario2.Bytes())
+	file.Close()
+}
+
+func escribirStructINODO(path string, posINO int64, ino inodo) {
+	inod := ino
+	i := &inod
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Seek(posINO, 0)
+	var binario2 bytes.Buffer
+	err1 := binary.Write(&binario2, binary.BigEndian, i)
+	if err1 != nil {
+		fmt.Println("SuperBloque- binary error ", err1)
+	}
+	escribirBytes(file, binario2.Bytes())
+	file.Close()
+}
+
+func escribirStructBLOQUE(path string, posBLOQUE int64, bloquedato bloque) {
+	bd := bloquedato
+	b := &bd
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Seek(posBLOQUE, 0)
+	var binario2 bytes.Buffer
+	err1 := binary.Write(&binario2, binary.BigEndian, b)
+	if err1 != nil {
+		fmt.Println("SuperBloque- binary error ", err1)
+	}
+	escribirBytes(file, binario2.Bytes())
+	file.Close()
+}
+
+func actualizarValorBitmap(path string, pos int64, valor byte) {
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+	val := valor
+	/*fmt.Println("Valor a meter a bitmap")
+	fmt.Println(val)
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()*/
+	//v := &val
+	if err != nil {
+		log.Fatal(err)
+	}
+	/*fmt.Println("Nuevo valor bitmap")
+	fmt.Println(val)
+	fmt.Println("EN la posicion")
+	fmt.Println(pos)*/
+	file.Seek(pos, 0)
+	var binario2 bytes.Buffer
+	err1 := binary.Write(&binario2, binary.BigEndian, val)
+	if err1 != nil {
+		fmt.Println("ValorBit- binary error ", err1)
+	}
+	escribirBytes(file, binario2.Bytes())
+	file.Close()
 }
 
 func escribirStructInicial(path string, superbloque sb) {
@@ -218,6 +321,13 @@ func escribirStructInicial(path string, superbloque sb) {
 
 	posSeek := superbloque.SBapAVD
 	a := avd{}
+	for i := 0; i < 6; i++ {
+		a.AVDapArraySub[i] = -1
+	}
+	a.AVDapDetalleDir = -1
+	a.AVDapAVD = -1
+	a.AVDproper = -1
+
 	for i := 0; i < int(superbloque.SBavdCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -225,13 +335,16 @@ func escribirStructInicial(path string, superbloque sb) {
 		if err1 != nil {
 			fmt.Println("SuperBloqueVacio- binary error ", err1)
 		}
-		escribirBytesS(file, binario2.Bytes())
+		escribirBytes(file, binario2.Bytes())
 		posSeek = posSeek + sizeAVD
-
 	}
 
 	posSeek = superbloque.SBapDD
 	d := dd{}
+	for i := 0; i < 5; i++ {
+		d.DDarrayFiles[i].DDfileApInodo = -1
+	}
+	d.DDapDD = -1
 	for i := 0; i < int(superbloque.SBddCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -239,13 +352,20 @@ func escribirStructInicial(path string, superbloque sb) {
 		if err1 != nil {
 			fmt.Println("SuperBloqueVacio- binary error ", err1)
 		}
-		escribirBytesS(file, binario2.Bytes())
+		escribirBytes(file, binario2.Bytes())
 		posSeek = posSeek + sizeDD
 
 	}
 
 	posSeek = superbloque.SBapINODO
 	ino := inodo{}
+	ino.IcountInodo = -1
+	ino.IcountBloquesAsignados = -1
+	for i := 0; i < 4; i++ {
+		ino.IarrayBloques[i] = -1
+	}
+	ino.IapIndirecto = -1
+	ino.IidProper = -1
 	for i := 0; i < int(superbloque.SBinodosCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -253,12 +373,12 @@ func escribirStructInicial(path string, superbloque sb) {
 		if err1 != nil {
 			fmt.Println("SuperBloqueVacio- binary error ", err1)
 		}
-		escribirBytesS(file, binario2.Bytes())
+		escribirBytes(file, binario2.Bytes())
 		posSeek = posSeek + sizeInodo
 
 	}
 
-	posSeek = superbloque.SBapBBLOQUE
+	posSeek = superbloque.SBapBLOQUE
 	b := bloque{}
 	for i := 0; i < int(superbloque.SBbloquesCount); i++ {
 		file.Seek(posSeek, 0)
@@ -267,7 +387,7 @@ func escribirStructInicial(path string, superbloque sb) {
 		if err1 != nil {
 			fmt.Println("SuperBloqueVacio- binary error ", err1)
 		}
-		escribirBytesS(file, binario2.Bytes())
+		escribirBytes(file, binario2.Bytes())
 		posSeek = posSeek + sizeBloque
 
 	}
@@ -281,9 +401,10 @@ func escribirStructInicial(path string, superbloque sb) {
 		if err1 != nil {
 			fmt.Println("SuperBloqueVacio- binary error ", err1)
 		}
-		escribirBytesS(file, binario2.Bytes())
+		escribirBytes(file, binario2.Bytes())
 		posSeek = posSeek + sizeBitacora
 	}
+	file.Close()
 }
 
 func obtenerSB(path string, pos int64) sb {
@@ -313,9 +434,117 @@ func obtenerSB(path string, pos int64) sb {
 	return s //, fallo
 }
 
-func escribirBytesS(file *os.File, bytes []byte) {
+func obtenerAVD(path string, pos int64) avd {
+	//fallo := false
+	file, err := os.Open(path)
+	defer file.Close()
+	if err != nil {
+		//fallo = true
+		panic(err)
+	}
+
+	s := avd{}
+	var size int = int(unsafe.Sizeof(s))
+
+	file.Seek(pos, 0)
+	data := obtenerBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	//fmt.Println(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &s)
+	if err != nil {
+		log.Fatal("avd binary.Read failed", err)
+	}
+
+	//fmt.Println(m)
+	return s //, fallo
+}
+
+func obtenerDD(path string, pos int64) dd {
+	//fallo := false
+	file, err := os.Open(path)
+	defer file.Close()
+	if err != nil {
+		//fallo = true
+		panic(err)
+	}
+
+	s := dd{}
+	var size int = int(unsafe.Sizeof(s))
+
+	file.Seek(pos, 0)
+	data := obtenerBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	//fmt.Println(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &s)
+	if err != nil {
+		log.Fatal("avd binary.Read failed", err)
+	}
+
+	//fmt.Println(m)
+	return s //, fallo
+}
+
+func obtenerINODO(path string, pos int64) inodo {
+	//fallo := false
+	file, err := os.Open(path)
+	defer file.Close()
+	if err != nil {
+		//fallo = true
+		panic(err)
+	}
+
+	s := inodo{}
+	var size int = int(unsafe.Sizeof(s))
+
+	file.Seek(pos, 0)
+	data := obtenerBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	//fmt.Println(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &s)
+	if err != nil {
+		log.Fatal("avd binary.Read failed", err)
+	}
+
+	//fmt.Println(m)
+	return s //, fallo
+}
+
+func obtenerBLOQUE(path string, pos int64) bloque {
+	//fallo := false
+	file, err := os.Open(path)
+	defer file.Close()
+	if err != nil {
+		//fallo = true
+		panic(err)
+	}
+
+	s := bloque{}
+	var size int = int(unsafe.Sizeof(s))
+
+	file.Seek(pos, 0)
+	data := obtenerBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	//fmt.Println(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &s)
+	if err != nil {
+		log.Fatal("avd binary.Read failed", err)
+	}
+
+	//fmt.Println(m)
+	return s //, fallo
+}
+
+/*func escribirBytesS(file *os.File, bytes []byte) {
 	_, err := file.Write(bytes)
 	if err != nil {
 		log.Fatal(err)
 	}
-}
+}*/

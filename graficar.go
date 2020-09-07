@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"container/list"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"os"
 	"os/exec"
@@ -25,6 +28,55 @@ func graficar(path string, nombre string, id string, ruta string) {
 		dot := graficasb(id)
 		pathDot, nombreDot := descomponer(path)
 		generarDOT(dot, pathDot, nombreDot)
+	} else if nombre == "tree_directorio" {
+		var idDisco byte
+		idDisco = id[2]
+		idDisco2 := idDisco - 97
+		idP, _ := strconv.Atoi(id[3:])
+		idP--
+
+		if arregloMount[idDisco2].estado == 1 {
+			if arregloMount[idDisco2].discos[idP].estado == 1 {
+				inicioPart := arregloMount[idDisco2].discos[idP].Partstart
+				//tamPart := arregloMount[idDisco2].discos[idP].Partsize
+				rutaDisco := arregloMount[idDisco2].Ruta
+				superBloque := obtenerSB(rutaDisco, inicioPart)
+
+				file, err := os.OpenFile(rutaDisco, os.O_RDWR, 0777)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				var car byte
+				var size int = int(unsafe.Sizeof(car))
+				//pos := 0
+				posIni := superBloque.SBapBAVD
+				for i := 0; i < int(superBloque.SBavdCount); i++ {
+					file.Seek(posIni, 0)
+
+					data := obtenerBytesEbr(file, size)
+					buffer := bytes.NewBuffer(data)
+
+					err = binary.Read(buffer, binary.BigEndian, &car)
+					if err != nil {
+						log.Fatal("binary.Read failed", err)
+					}
+
+					if car == '1' {
+						//pos = i
+						fmt.Println("Pos en bitmap donde esta " + strconv.Itoa(i))
+						fmt.Println(superBloque.SBapAVD + (int64(i) * superBloque.SBsizeStructAVD))
+						printavd := obtenerAVD(rutaDisco, superBloque.SBapAVD+(int64(i)*superBloque.SBsizeStructAVD))
+						fmt.Println("Avd Econtrado: ")
+						fmt.Println(printavd)
+					}
+					posIni++
+				}
+
+				file.Close()
+
+			}
+		}
 	}
 }
 
@@ -325,6 +377,10 @@ func generarDOT(dot string, path string, nombre string) {
 func descomponer(path string) (string, string) {
 	var carpeta, archivo string
 	pathPart := strings.SplitAfter(path, "/")
+	/*partar := strings.Split(path, "/")
+	for i := 0; i < len(partar); i++ {
+		fmt.Println(partar[i])
+	}*/
 	for i := 0; i < len(pathPart)-1; i++ {
 		carpeta += pathPart[i]
 	}

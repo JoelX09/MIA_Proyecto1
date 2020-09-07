@@ -64,16 +64,15 @@ type banderaParam struct {
 	idY     bool
 	nombreY bool
 	rutaY   bool
+	guionP  bool
 }
 
 var dato datoDisco
 var flagP banderaParam
 
-//var listaMount = list.New()
 var arregloMount [26]estructDisco
 
 func main() {
-	//listaMount.Init()
 	for i := 0; i < len(arregloMount); i++ {
 		arregloMount[i].estado = 0
 	}
@@ -175,7 +174,7 @@ func analizador(cadena string) {
 
 					fmt.Println("Contenido: " + parametro)
 					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", ""}
-					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false}
+					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false, false}
 					/*dato = */ analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
 				}
@@ -262,6 +261,12 @@ func analizador(cadena string) {
 					} else {
 						fmt.Println("Parametro obligatorio faltante")
 					}
+				case "mkdir":
+					if flagP.idY == true && flagP.pathY == true {
+						crearCarpeta(dato.idn, dato.path, flagP.guionP)
+					} else {
+						fmt.Println("Parametro obligatorio faltante")
+					}
 				default:
 					fmt.Println("El comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1))
 
@@ -292,6 +297,7 @@ func analizadorParametros(cadena string, linea int) /*datoDisco */ {
 				estado = 2
 			} else if cadena[i] == 32 {
 				//fmt.Println("\nParametro \"" + parametro + "\" suelto en la linea: " + strconv.Itoa(linea))
+				almacenarValor(parametro, contParam, linea)
 				estado = 0
 			} else if cadena[i] == '#' {
 				//fmt.Println("\nParametro \"" + parametro + "\" suelto en la linea: " + strconv.Itoa(linea))
@@ -355,6 +361,9 @@ var listaID = list.New()
 
 func almacenarValor(parametro string, contParam string, linea int) {
 	valor := strings.ToLower(parametro)
+	/*fmt.Println(valor)
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()*/
 	match, _ := regexp.MatchString("^id[0-9]+", valor)
 	if match == true {
 		valor = "id"
@@ -401,6 +410,8 @@ func almacenarValor(parametro string, contParam string, linea int) {
 	case "ruta":
 		flagP.rutaY = true
 		dato.ruta = contParam
+	case "p":
+		flagP.guionP = true
 	default:
 		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))
 	}
