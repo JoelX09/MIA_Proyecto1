@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"container/list"
-	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"os"
 	"os/exec"
@@ -18,66 +15,30 @@ import (
 func graficar(path string, nombre string, id string, ruta string) {
 	if nombre == "mbr" {
 		dot := graficaMBR(id)
-		pathDot, nombreDot := descomponer(path)
-		generarDOT(dot, pathDot, nombreDot)
+		generar(dot, path)
+		/*pathDot, nombreDot := descomponer(path)
+		generarDOT(dot, pathDot, nombreDot)*/
 	} else if nombre == "disk" {
 		dot := graficaDisco(id)
-		pathDot, nombreDot := descomponer(path)
-		generarDOT(dot, pathDot, nombreDot)
+		generar(dot, path)
+		/*pathDot, nombreDot := descomponer(path)
+		generarDOT(dot, pathDot, nombreDot)*/
 	} else if nombre == "sb" {
 		dot := graficasb(id)
-		pathDot, nombreDot := descomponer(path)
-		generarDOT(dot, pathDot, nombreDot)
+		generar(dot, path)
+		/*pathDot, nombreDot := descomponer(path)
+		generarDOT(dot, pathDot, nombreDot)*/
 	} else if nombre == "tree_directorio" {
-		var idDisco byte
-		idDisco = id[2]
-		idDisco2 := idDisco - 97
-		idP, _ := strconv.Atoi(id[3:])
-		idP--
-
-		if arregloMount[idDisco2].estado == 1 {
-			if arregloMount[idDisco2].discos[idP].estado == 1 {
-				inicioPart := arregloMount[idDisco2].discos[idP].Partstart
-				//tamPart := arregloMount[idDisco2].discos[idP].Partsize
-				rutaDisco := arregloMount[idDisco2].Ruta
-				superBloque := obtenerSB(rutaDisco, inicioPart)
-
-				file, err := os.OpenFile(rutaDisco, os.O_RDWR, 0777)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				var car byte
-				var size int = int(unsafe.Sizeof(car))
-				//pos := 0
-				posIni := superBloque.SBapBAVD
-				for i := 0; i < int(superBloque.SBavdCount); i++ {
-					file.Seek(posIni, 0)
-
-					data := obtenerBytesEbr(file, size)
-					buffer := bytes.NewBuffer(data)
-
-					err = binary.Read(buffer, binary.BigEndian, &car)
-					if err != nil {
-						log.Fatal("binary.Read failed", err)
-					}
-
-					if car == '1' {
-						//pos = i
-						fmt.Println("Pos en bitmap donde esta " + strconv.Itoa(i))
-						fmt.Println(superBloque.SBapAVD + (int64(i) * superBloque.SBsizeStructAVD))
-						printavd := obtenerAVD(rutaDisco, superBloque.SBapAVD+(int64(i)*superBloque.SBsizeStructAVD))
-						fmt.Println("Avd Econtrado: ")
-						fmt.Println(printavd)
-					}
-					posIni++
-				}
-
-				file.Close()
-
-			}
-		}
+		dot := graficarTreeDirectorio(id)
+		generar(dot, path)
+		/*pathDot, nombreDot := descomponer(path)
+		generarDOT(dot, pathDot, nombreDot)*/
 	}
+}
+
+func generar(dot string, path string) {
+	pathDot, nombreDot := descomponer(path)
+	generarDOT(dot, pathDot, nombreDot)
 }
 
 func graficaMBR(vd string) string {
@@ -344,6 +305,78 @@ func graficasb(vd string) string {
 	} else {
 		fmt.Println("EL disco proporcionado no esta montado")
 	}
+	return dot
+}
+
+func graficarTreeDirectorio(vd string) string {
+	var idDisco byte
+	idDisco = vd[2]
+	idDisco2 := idDisco - 97
+	idP, _ := strconv.Atoi(vd[3:])
+	idP--
+
+	dot := ""
+
+	dot += "digraph treedd {\n" +
+		"\tnode [shape=record];\n\n"
+
+	if arregloMount[idDisco2].estado == 1 {
+		if arregloMount[idDisco2].discos[idP].estado == 1 {
+
+			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
+			rutaDisco := arregloMount[idDisco2].Ruta
+			superBloque := obtenerSB(rutaDisco, inicioPart)
+
+			dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD)
+
+			dot += "}"
+		} else {
+			fmt.Println("La particion indicada no esta montada")
+		}
+	} else {
+		fmt.Println("EL disco proporcionado no esta montado")
+	}
+
+	return dot
+}
+
+func nodosTreeDirectorio(rutaDisco string, pos int64) string {
+	arbol := obtenerAVD(rutaDisco, pos)
+	nombre := ""
+	dot := ""
+	for i := 0; i < len(arbol.AVDnombreDirectorio); i++ {
+		if arbol.AVDnombreDirectorio[i] != 0 {
+			nombre += string(arbol.AVDnombreDirectorio[i])
+		}
+	}
+	dot += "\tstruct" + strconv.FormatInt(pos, 10) + " [label=\"{ " + nombre + " |{"
+	for i := 0; i < len(arbol.AVDapArraySub); i++ {
+		dot += "<f" + strconv.Itoa(i) + ">|"
+	}
+	dot += "<f6>|<f7>}}\"];\n\n"
+
+	for i := 0; i < len(arbol.AVDapArraySub); i++ {
+		if arbol.AVDapArraySub[i] != -1 {
+			dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f" + strconv.Itoa(i) + " -> " +
+				"struct" + strconv.FormatInt(arbol.AVDapArraySub[i], 10) + ";\n"
+		}
+	}
+
+	if arbol.AVDapAVD != -1 {
+		dot += "\n\tstruct" + strconv.FormatInt(pos, 10) + ":f7 -> " +
+			"struct" + strconv.FormatInt(arbol.AVDapAVD, 10) + "\n\n\n"
+	}
+
+	for i := 0; i < len(arbol.AVDapArraySub); i++ {
+		if arbol.AVDapArraySub[i] != -1 {
+			dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapArraySub[i])
+		}
+	}
+
+	if arbol.AVDapAVD != -1 {
+		dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD)
+	}
+
 	return dot
 }
 
