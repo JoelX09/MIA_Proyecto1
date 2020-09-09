@@ -56,6 +56,8 @@ type avd struct {
 	AVDapDetalleDir     int64
 	AVDapAVD            int64
 	AVDproper           int8
+	AVDgid              int8
+	AVDperm             [3]byte
 }
 
 type dd struct {
@@ -76,7 +78,9 @@ type inodo struct {
 	IcountBloquesAsignados int64
 	IarrayBloques          [4]int64
 	IapIndirecto           int64
-	IidProper              int64
+	IidProper              int8
+	AVDgid                 int8
+	AVDperm                [3]byte
 }
 
 type bloque struct {
@@ -84,9 +88,9 @@ type bloque struct {
 }
 
 type bitacora struct {
-	LOGtipoOperacion int64 // <---------------------------------- Preguntar
-	LOGtipo          int64
-	LOGnombre        [20]byte
+	LOGtipoOperacion [10]byte
+	LOGtipo          byte
+	LOGnombre        [100]byte
 	LOGcontenido     [100]byte
 	LOGfecha         [19]byte
 }
@@ -181,6 +185,7 @@ func formatearPart(vd string, tipo string, add int64, unit byte) {
 			escribirStructInicial(rutaDisco, superBloque) // <----------------VERIFICAR
 			// --------------------------------------------------------------------
 			crearCarpeta(vd, "/", true)
+			crearArvhi(vd, "/users.txt", true, 0, "")
 
 		} else {
 			fmt.Println("La particion indica no esta mon")

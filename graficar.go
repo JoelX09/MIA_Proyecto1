@@ -16,23 +16,17 @@ func graficar(path string, nombre string, id string, ruta string) {
 	if nombre == "mbr" {
 		dot := graficaMBR(id)
 		generar(dot, path)
-		/*pathDot, nombreDot := descomponer(path)
-		generarDOT(dot, pathDot, nombreDot)*/
 	} else if nombre == "disk" {
 		dot := graficaDisco(id)
 		generar(dot, path)
-		/*pathDot, nombreDot := descomponer(path)
-		generarDOT(dot, pathDot, nombreDot)*/
 	} else if nombre == "sb" {
 		dot := graficasb(id)
 		generar(dot, path)
-		/*pathDot, nombreDot := descomponer(path)
-		generarDOT(dot, pathDot, nombreDot)*/
-	} else if nombre == "tree_directorio" {
+	} else if nombre == "directorio" {
 		dot := graficarTreeDirectorio(id)
 		generar(dot, path)
-		/*pathDot, nombreDot := descomponer(path)
-		generarDOT(dot, pathDot, nombreDot)*/
+	} else if nombre == "tree directorio" {
+
 	}
 }
 
@@ -362,6 +356,11 @@ func nodosTreeDirectorio(rutaDisco string, pos int64) string {
 		}
 	}
 
+	if arbol.AVDapDetalleDir != -1 {
+		dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f6 -> " +
+			"struct" + strconv.FormatInt(arbol.AVDapDetalleDir, 10) + ";\n"
+	}
+
 	if arbol.AVDapAVD != -1 {
 		dot += "\n\tstruct" + strconv.FormatInt(pos, 10) + ":f7 -> " +
 			"struct" + strconv.FormatInt(arbol.AVDapAVD, 10) + "\n\n\n"
@@ -373,8 +372,99 @@ func nodosTreeDirectorio(rutaDisco string, pos int64) string {
 		}
 	}
 
+	if arbol.AVDapDetalleDir != -1 {
+		dot += graficarDD(arbol.AVDapDetalleDir, rutaDisco)
+	}
+
 	if arbol.AVDapAVD != -1 {
 		dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD)
+	}
+
+	return dot
+}
+
+func graficarDD(posDD int64, rutaDisco string) string {
+	directorio := obtenerDD(rutaDisco, posDD)
+
+	nombre := ""
+	dot := ""
+	dot += "\tstruct" + strconv.FormatInt(posDD, 10) + " [label=\"{"
+	for i := 0; i < 5; i++ {
+		dot += "<f" + strconv.Itoa(i) + "> "
+		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
+			for j := 0; j < len(directorio.DDarrayFiles[i].DDfileNombre); j++ {
+				if directorio.DDarrayFiles[i].DDfileNombre[j] != 0 {
+					nombre += string(directorio.DDarrayFiles[i].DDfileNombre[j])
+				}
+			}
+			dot += nombre + " |"
+		} else {
+			dot += " |"
+		}
+
+	}
+	dot += "<f5> Indi }\"];\n\n"
+
+	for i := 0; i < 5; i++ {
+		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
+			dot += "\tstruct" + strconv.FormatInt(posDD, 10) + ":f" + strconv.Itoa(i) + " -> struct" + strconv.FormatInt(directorio.DDarrayFiles[i].DDfileApInodo, 10) + ";\n\n"
+		}
+	}
+
+	if directorio.DDapDD != -1 {
+		dot += "\tstruct" + strconv.FormatInt(posDD, 10) + ":f5 -> struct" + strconv.FormatInt(directorio.DDapDD, 10) + ";\n\n"
+	}
+
+	for i := 0; i < 5; i++ {
+		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
+			dot += graficarInodo(directorio.DDarrayFiles[i].DDfileApInodo, rutaDisco)
+		}
+	}
+
+	if directorio.DDapDD != -1 {
+		dot += graficarDD(directorio.DDapDD, rutaDisco)
+	}
+
+	return dot
+}
+
+func graficarInodo(posInodo int64, rutaDisco string) string {
+
+	nuevoInodo := obtenerINODO(rutaDisco, posInodo)
+	dot := ""
+	dot += "\n\tstruct" + strconv.FormatInt(posInodo, 10) + " [label=\"{" +
+		"<fo> " + strconv.FormatInt(nuevoInodo.IcountInodo, 10) + " |" +
+		"<f1> " + strconv.FormatInt(nuevoInodo.IsizeArchivo, 10) + " |" +
+		"<f2> " + strconv.FormatInt(nuevoInodo.IcountBloquesAsignados, 10) + " |" +
+		"<f3> B1 |" +
+		"<f4> B2 |" +
+		"<f5> B3 |" +
+		"<f6> B4 |" +
+		"<f7> Inodo indirecto}\"];\n"
+
+	for i := 0; i < len(nuevoInodo.IarrayBloques); i++ {
+		if nuevoInodo.IarrayBloques[i] != -1 {
+			dot += "\n\tstruct" + strconv.FormatInt(posInodo, 10) + ":f" + strconv.Itoa(i+3) + " -> struct" + strconv.FormatInt(nuevoInodo.IarrayBloques[i], 10)
+		}
+	}
+
+	if nuevoInodo.IapIndirecto != -1 {
+		dot += "\n\tstruct" + strconv.FormatInt(posInodo, 10) + ":f7 -> struct" + strconv.FormatInt(nuevoInodo.IapIndirecto, 10)
+	}
+
+	for i := 0; i < len(nuevoInodo.IarrayBloques); i++ {
+		if nuevoInodo.IarrayBloques[i] != -1 {
+			nuevoBloque := obtenerBLOQUE(rutaDisco, nuevoInodo.IarrayBloques[i])
+			cont := ""
+			for j := 0; j < 25; j++ {
+				cont += string(nuevoBloque.DBdata[j])
+			}
+			dot += "\n\tstruct" + strconv.FormatInt(nuevoInodo.IarrayBloques[i], 10) + " [label=\" " + cont + " \"];"
+		}
+	}
+
+	if nuevoInodo.IapIndirecto != -1 {
+		dot += graficarInodo(nuevoInodo.IapIndirecto, rutaDisco)
 	}
 
 	return dot

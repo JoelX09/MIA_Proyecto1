@@ -22,7 +22,6 @@ func crearCarpeta(vd string, path string, p bool) {
 	if arregloMount[idDisco2].estado == 1 {
 		if arregloMount[idDisco2].discos[idP].estado == 1 {
 			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
-			tamPart := arregloMount[idDisco2].discos[idP].Partsize
 			rutaDisco := arregloMount[idDisco2].Ruta
 			superBloque := obtenerSB(rutaDisco, inicioPart)
 
@@ -43,7 +42,7 @@ func crearCarpeta(vd string, path string, p bool) {
 				escribirStructAVD(rutaDisco, superBloque.SBapAVD, nuevoAVD)
 				superBloque.SBavdFree--
 				actualizarValorBitmap(rutaDisco, superBloque.SBapBAVD, '1')
-				nuevoFFBAVD := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBAVD, int(tamPart))
+				nuevoFFBAVD := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBAVD, int(superBloque.SBsizeStructAVD))
 
 				superBloque.SBfirstFreeBitAVD = nuevoFFBAVD
 				escribirSuperBloque(rutaDisco, inicioPart, superBloque)
@@ -267,7 +266,7 @@ func obtenerFirstFreeBit(ruta string, posIni int64, tam int) int64 {
 }
 
 /*
-func listadobitmap(ruta string, posIni int64, tam int) int64 {
+func listadobitmap(ruta string, posIni int64, tam int) {
 
 	file, err := os.OpenFile(ruta, os.O_RDWR, 0777)
 	if err != nil {
@@ -276,7 +275,7 @@ func listadobitmap(ruta string, posIni int64, tam int) int64 {
 
 	var car byte
 	var size int = int(unsafe.Sizeof(car))
-	pos := 0
+
 	for i := 0; i < tam; i++ {
 		file.Seek(posIni, 0)
 
@@ -288,12 +287,11 @@ func listadobitmap(ruta string, posIni int64, tam int) int64 {
 			log.Fatal("binary.Read failed", err)
 		}
 
-		fmt.Print("valor i ")
+		fmt.Print("valor i " + strconv.Itoa(i) + " ")
 		fmt.Println(car)
 		posIni++
 	}
 
 	file.Close()
-	return int64(pos)
-}
-*/
+
+}*/
