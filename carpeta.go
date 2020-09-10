@@ -163,11 +163,6 @@ func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) 
 			}
 
 			escribirStructAVD(rutaDisco, posAnterior, avdPadre)
-
-			/*fmt.Println("NUEVO AVD SUB")
-			fmt.Println(posNuevoAVD)
-			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()*/
 			escribirStructAVD(rutaDisco, posNuevoAVD, nuevoAVD)
 			superBloque.SBavdFree--
 			actualizarValorBitmap(rutaDisco, superBloque.SBapBAVD+posFirstFreeBit, '1')
@@ -237,10 +232,6 @@ func nuevoAVDindirecto(pos int64, ruta string, superBloque sb, inicioPart int64)
 			arbol.AVDapAVD = posNuevoAVD
 
 			escribirStructAVD(ruta, pos, arbol)
-			/*fmt.Println("NUEVO AVD INDIRECTO")
-			fmt.Println(posNuevoAVD)
-			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()*/
 			escribirStructAVD(ruta, posNuevoAVD, nuevoAVD)
 			superBloque.SBavdFree--
 			actualizarValorBitmap(ruta, superBloque.SBapBAVD+posFirstFreeBit, '1')

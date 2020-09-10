@@ -270,10 +270,6 @@ func analizador(cadena string) {
 					}
 				case "mkfile":
 					if flagP.idY == true && flagP.pathY == true {
-						/*fmt.Println("Dir carpeta y archivo")
-						fmt.Println(dato.path)
-						fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-						fmt.Scanln()*/
 						crearArvhi(dato.idn, dato.path, flagP.guionP, dato.size, dato.cont)
 					} else {
 						fmt.Println("Parametro obligatorio faltante")
@@ -372,9 +368,6 @@ var listaID = list.New()
 
 func almacenarValor(parametro string, contParam string, linea int) {
 	valor := strings.ToLower(parametro)
-	/*fmt.Println(valor)
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()*/
 	match, _ := regexp.MatchString("^id[0-9]+", valor)
 	if match == true {
 		valor = "id"

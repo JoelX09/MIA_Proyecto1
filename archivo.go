@@ -17,17 +17,11 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 	if arregloMount[idDisco2].estado == 1 {
 		if arregloMount[idDisco2].discos[idP].estado == 1 {
 			rutaAchivo, nombreArchivo := descomponer(path)
-			/*fmt.Println("NOmbre obtenido al descomponer")
-			fmt.Println(nombreArchivo)
-			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()*/
 			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
 			rutaDisco := arregloMount[idDisco2].Ruta
 			superBloque := obtenerSB(rutaDisco, inicioPart)
 
 			if path == "/users.txt" {
-
-				//raiz := obtenerAVD(rutaDisco, superBloque.SBapAVD)
 
 				//****************************************** Contenido **************************************************//
 				fmt.Println("Se va a crear users.txt")
@@ -43,68 +37,6 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 
 				//******************************************** DE AQUI **************************************************//
 				codigoRepetido(rutaDisco, superBloque.SBapAVD, contenido, int64(tamContenido), inicioPart, "users.txt")
-
-				/*posDD := raiz.AVDapDetalleDir
-				nuevoDD := obtenerDD(rutaDisco, posDD)
-				//nuevoDD := dd{}
-				/*for i := 0; i < 5; i++ {
-					nuevoDD.DDarrayFiles[i].DDfileApInodo = -1
-				}*/
-				//nuevoDD.DDapDD = -1
-
-				//posDD := superBloque.SBapDD + superBloque.SBfirstFreeBitDD*superBloque.SBsizeStructDD
-
-				//superBloque.SBddFree--
-				//actualizarValorBitmap(rutaDisco, superBloque.SBapBDD+superBloque.SBfirstFreeBitDD, '1')
-				//nuevoFFBDD := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBDD, int(superBloque.SBddCount))
-
-				//superBloque.SBfirstFreeBitDD = nuevoFFBDD
-
-				/*nuevoArreglogArchivo := arregloArchivos{}
-
-				nuevoInodo := inodo{}
-				posNuevoInodo := superBloque.SBapINODO + superBloque.SBfirstFreeBitINODO*superBloque.SBsizeStructINODO
-
-				superBloque.SBinodosFree--
-				actualizarValorBitmap(rutaDisco, superBloque.SBapBINODO+superBloque.SBfirstFreeBitINODO, '1')
-				nuevoFFBINODO := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBINODO, int(superBloque.SBinodosCount))
-
-				bInodoAnt := superBloque.SBfirstFreeBitINODO
-				superBloque.SBfirstFreeBitINODO = nuevoFFBINODO
-
-				copy(nuevoArreglogArchivo.DDfileNombre[:], "users.txt")
-				nuevoArreglogArchivo.DDfileApInodo = posNuevoInodo
-				fecha := time.Now().Format("2006-01-02 15:04:05")
-				copy(nuevoArreglogArchivo.DDfileDateCreacion[:], fecha)
-				fecha = time.Now().Format("2006-01-02 15:04:05")
-				copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
-				for i := 0; i < 5; i++ {
-					if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-						nuevoDD.DDarrayFiles[i] = nuevoArreglogArchivo
-						break
-					}
-				}
-
-				escribirStructDD(rutaDisco, posDD, nuevoDD)
-
-				nuevoInodo.IcountInodo = bInodoAnt + 1
-				nuevoInodo.IsizeArchivo = int64(tamContenido)
-				nuevoInodo.IcountBloquesAsignados = int64(cantidadBloques)
-				nuevoInodo.IidProper = 1
-				nuevoInodo.IapIndirecto = -1
-				for i := 0; i < 4; i++ {
-					nuevoInodo.IarrayBloques[i] = -1
-				}
-				escribirStructINODO(rutaDisco, posNuevoInodo, nuevoInodo)
-
-				//raiz.AVDapDetalleDir = posDD
-
-				//escribirStructAVD(rutaDisco, superBloque.SBapAVD, raiz)
-
-				escribirSuperBloque(rutaDisco, inicioPart, superBloque)
-				superBloque = obtenerSB(rutaDisco, inicioPart)
-
-				llenarNuevoArchivo(contenido, posNuevoInodo, rutaDisco, superBloque, inicioPart, true)*/
 
 			} else {
 
@@ -129,12 +61,13 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 					fmt.Println("******************************************************")
 					fmt.Println("Todas las carpetas existen")
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					/*fmt.Scanln()
-					fmt.Println(posEncontrado)*/
+					fmt.Scanln()
+					//fmt.Println(posEncontrado)
 
 					raiz := obtenerAVD(rutaDisco, posEncontrado)
 					posDDr := raiz.AVDapDetalleDir
 					nuevoDD, posDD := verficarNuevoDD(rutaDisco, posDDr, inicioPart)
+					superBloque = obtenerSB(rutaDisco, inicioPart)
 
 					nuevoArreglogArchivo := arregloArchivos{}
 
@@ -148,22 +81,15 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 					bInodoAnt := superBloque.SBfirstFreeBitINODO
 					superBloque.SBfirstFreeBitINODO = nuevoFFBINODO
 
-					/*fmt.Println("NOmbre a insertar obtenido al descomponer")
-					fmt.Println(nombreArchivo)
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()*/
 					copy(nuevoArreglogArchivo.DDfileNombre[:], nombreArchivo)
-					/*fmt.Println("NOmbre inserta")
-					fmt.Println(string(nuevoArreglogArchivo.DDfileNombre[:]))
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()*/
+
 					nuevoArreglogArchivo.DDfileApInodo = posNuevoInodo
 					fecha := time.Now().Format("2006-01-02 15:04:05")
 					copy(nuevoArreglogArchivo.DDfileDateCreacion[:], fecha)
 					fecha = time.Now().Format("2006-01-02 15:04:05")
 					copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
 					fmt.Println("Pos arreglo y si esta libre")
-					for i := 0; i < 5; i++ {
+					/*for i := 0; i < 5; i++ {
 						if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
 							fmt.Println("La posicion esta libre")
 							fmt.Println(i)
@@ -175,13 +101,13 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 							fmt.Println("Valor")
 							fmt.Println(nuevoDD.DDarrayFiles[i].DDfileApInodo)
 						}
-					}
-					fmt.Println("=======================================================================================")
+					}*/
+					/*fmt.Println("=======================================================================================")
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()
+					fmt.Scanln()*/
 					for i := 0; i < 5; i++ {
 						if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-							fmt.Println("Voy a insertar el archivo")
+							/*fmt.Println("Voy a insertar el archivo")
 							fmt.Println(nombreArchivo)
 							fmt.Println("EN la pos del arreglo de archivos")
 							fmt.Println(i)
@@ -190,7 +116,7 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 							fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
 							fmt.Scanln()
 							fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-							fmt.Scanln()
+							fmt.Scanln()*/
 							nuevoDD.DDarrayFiles[i] = nuevoArreglogArchivo
 							break
 						}
@@ -213,77 +139,20 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 					}
 					escribirStructINODO(rutaDisco, posNuevoInodo, nuevoInodo)
 
-					//raiz.AVDapDetalleDir = posDD
-
-					//escribirStructAVD(rutaDisco, superBloque.SBapAVD, raiz)
-
 					escribirSuperBloque(rutaDisco, inicioPart, superBloque)
 					superBloque = obtenerSB(rutaDisco, inicioPart)
 
 					llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true)
 
 				} else {
-					fmt.Println("******************************************************")
+					/*fmt.Println("******************************************************")
 					fmt.Println("Faltan carpetas")
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()
+					fmt.Scanln()*/
 					var posUltimaCarpeta int64
 					if t == len(pathPart)-1 {
 						posUltimaCarpeta = crearDir(rutaDisco, superBloque, path2, inicioPart)
 						codigoRepetido(rutaDisco, posUltimaCarpeta, cont, size, inicioPart, nombreArchivo)
-						/*raiz := obtenerAVD(rutaDisco, posUltimaCarpeta)
-						posDD := raiz.AVDapDetalleDir
-						nuevoDD := obtenerDD(rutaDisco, posDD)
-						nuevoArreglogArchivo := arregloArchivos{}
-
-						nuevoInodo := inodo{}
-						posNuevoInodo := superBloque.SBapINODO + superBloque.SBfirstFreeBitINODO*superBloque.SBsizeStructINODO
-
-						superBloque.SBinodosFree--
-						actualizarValorBitmap(rutaDisco, superBloque.SBapBINODO+superBloque.SBfirstFreeBitINODO, '1')
-						nuevoFFBINODO := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBINODO, int(superBloque.SBinodosCount))
-
-						bInodoAnt := superBloque.SBfirstFreeBitINODO
-						superBloque.SBfirstFreeBitINODO = nuevoFFBINODO
-
-						copy(nuevoArreglogArchivo.DDfileNombre[:], nombreArchivo)
-						nuevoArreglogArchivo.DDfileApInodo = posNuevoInodo
-						fecha := time.Now().Format("2006-01-02 15:04:05")
-						copy(nuevoArreglogArchivo.DDfileDateCreacion[:], fecha)
-						fecha = time.Now().Format("2006-01-02 15:04:05")
-						copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
-						for i := 0; i < 5; i++ {
-							if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-								nuevoDD.DDarrayFiles[i] = nuevoArreglogArchivo
-								break
-							}
-						}
-
-						escribirStructDD(rutaDisco, posDD, nuevoDD)
-
-						nuevoInodo.IcountInodo = bInodoAnt + 1
-						nuevoInodo.IsizeArchivo = int64(size)
-						cantidadBloques := size / 25
-						cantidadBloqueD := size % 25
-						if cantidadBloqueD != 0 {
-							cantidadBloques++
-						}
-						nuevoInodo.IcountBloquesAsignados = int64(cantidadBloques)
-						nuevoInodo.IidProper = 1
-						nuevoInodo.IapIndirecto = -1
-						for i := 0; i < 4; i++ {
-							nuevoInodo.IarrayBloques[i] = -1
-						}
-						escribirStructINODO(rutaDisco, posNuevoInodo, nuevoInodo)
-
-						//raiz.AVDapDetalleDir = posDD
-
-						//escribirStructAVD(rutaDisco, superBloque.SBapAVD, raiz)
-
-						escribirSuperBloque(rutaDisco, inicioPart, superBloque)
-						superBloque = obtenerSB(rutaDisco, inicioPart)
-
-						llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart)*/
 
 					} else {
 						if p == true {
@@ -295,59 +164,6 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 								fmt.Println(posUltimaCarpeta)
 							}
 							codigoRepetido(rutaDisco, posUltimaCarpeta, cont, size, inicioPart, nombreArchivo)
-							/*raiz := obtenerAVD(rutaDisco, posUltimaCarpeta)
-							posDD := raiz.AVDapDetalleDir
-							nuevoDD := obtenerDD(rutaDisco, posDD)
-							nuevoArreglogArchivo := arregloArchivos{}
-
-							nuevoInodo := inodo{}
-							posNuevoInodo := superBloque.SBapINODO + superBloque.SBfirstFreeBitINODO*superBloque.SBsizeStructINODO
-
-							superBloque.SBinodosFree--
-							actualizarValorBitmap(rutaDisco, superBloque.SBapBINODO+superBloque.SBfirstFreeBitINODO, '1')
-							nuevoFFBINODO := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBINODO, int(superBloque.SBinodosCount))
-
-							bInodoAnt := superBloque.SBfirstFreeBitINODO
-							superBloque.SBfirstFreeBitINODO = nuevoFFBINODO
-
-							copy(nuevoArreglogArchivo.DDfileNombre[:], nombreArchivo)
-							nuevoArreglogArchivo.DDfileApInodo = posNuevoInodo
-							fecha := time.Now().Format("2006-01-02 15:04:05")
-							copy(nuevoArreglogArchivo.DDfileDateCreacion[:], fecha)
-							fecha = time.Now().Format("2006-01-02 15:04:05")
-							copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
-							for i := 0; i < 5; i++ {
-								if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-									nuevoDD.DDarrayFiles[i] = nuevoArreglogArchivo
-									break
-								}
-							}
-
-							escribirStructDD(rutaDisco, posDD, nuevoDD)
-
-							nuevoInodo.IcountInodo = bInodoAnt + 1
-							nuevoInodo.IsizeArchivo = int64(size)
-							cantidadBloques := size / 25
-							cantidadBloqueD := size % 25
-							if cantidadBloqueD != 0 {
-								cantidadBloques++
-							}
-							nuevoInodo.IcountBloquesAsignados = int64(cantidadBloques)
-							nuevoInodo.IidProper = 1
-							nuevoInodo.IapIndirecto = -1
-							for i := 0; i < 4; i++ {
-								nuevoInodo.IarrayBloques[i] = -1
-							}
-							escribirStructINODO(rutaDisco, posNuevoInodo, nuevoInodo)
-
-							//raiz.AVDapDetalleDir = posDD
-
-							//escribirStructAVD(rutaDisco, superBloque.SBapAVD, raiz)
-
-							escribirSuperBloque(rutaDisco, inicioPart, superBloque)
-							superBloque = obtenerSB(rutaDisco, inicioPart)
-
-							llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart)*/
 
 						} else {
 							fmt.Println("No se pueden crear las carpetas padres, falta de parametro de permiso")
@@ -378,6 +194,10 @@ func verficarNuevoDD(rutaDisco string, posDD int64, pos int64) (dd, int64) {
 		if nuevoDD.DDapDD != -1 {
 			nuevoDD, posDD = verficarNuevoDD(rutaDisco, nuevoDD.DDapDD, pos)
 		} else {
+			/*fmt.Println("******************************************************")
+			fmt.Println("El dd esta lleno crear nuevo DD")
+			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+			fmt.Scanln()*/
 			superBloque := obtenerSB(rutaDisco, pos)
 			nuevo := dd{}
 
@@ -393,8 +213,10 @@ func verficarNuevoDD(rutaDisco string, posDD int64, pos int64) (dd, int64) {
 			nuevoFFBDD := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBDD, int(superBloque.SBddCount))
 
 			superBloque.SBfirstFreeBitDD = nuevoFFBDD
-
+			nuevoDD.DDapDD = posNuevo
+			escribirStructDD(rutaDisco, posDD, nuevoDD)
 			escribirStructDD(rutaDisco, posNuevo, nuevo)
+			escribirSuperBloque(rutaDisco, pos, superBloque)
 
 			nuevoDD = nuevo
 			posDD = posNuevo
@@ -404,6 +226,7 @@ func verficarNuevoDD(rutaDisco string, posDD int64, pos int64) (dd, int64) {
 	return nuevoDD, posDD
 }
 
+/*
 func verficarNuevoI(rutaDisco string, posI int64, pos int64) (inodo, int64) {
 	nuevoI := obtenerINODO(rutaDisco, posI)
 	cantidad := 0
@@ -443,7 +266,7 @@ func verficarNuevoI(rutaDisco string, posI int64, pos int64) (inodo, int64) {
 	}
 	return inodo{}, posI
 }
-
+*/
 func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloque sb, inicioPart int64, existeContenido bool) {
 	contB := []byte(cont)
 	termino := false
@@ -561,7 +384,7 @@ func codigoRepetido(rutaDisco string, posUltimaCarpeta int64, cont string, size 
 	copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
 	for i := 0; i < 5; i++ {
 		if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-			fmt.Println("Voy a insertar el archivo")
+			/*fmt.Println("Voy a insertar el archivo")
 			fmt.Println(nombreArchivo)
 			fmt.Println("EN la pos del arreglo de archivos")
 			fmt.Println(i)
@@ -570,13 +393,11 @@ func codigoRepetido(rutaDisco string, posUltimaCarpeta int64, cont string, size 
 			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
 			fmt.Scanln()
 			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()
+			fmt.Scanln()*/
 			nuevoDD.DDarrayFiles[i] = nuevoArreglogArchivo
 			break
 		}
 	}
-
-	//agregarDDIndirecto()
 
 	escribirStructDD(rutaDisco, posDD, nuevoDD)
 
@@ -595,24 +416,9 @@ func codigoRepetido(rutaDisco string, posUltimaCarpeta int64, cont string, size 
 	}
 	escribirStructINODO(rutaDisco, posNuevoInodo, nuevoInodo)
 
-	//raiz.AVDapDetalleDir = posDD
-
-	//escribirStructAVD(rutaDisco, superBloque.SBapAVD, raiz)
-
 	escribirSuperBloque(rutaDisco, inicioPart, superBloque)
 	superBloque = obtenerSB(rutaDisco, inicioPart)
 
 	llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true)
 
-}
-
-func agregarDDIndirecto(rutaDisco string, posDD int64) {
-	nuevoDD := obtenerDD(rutaDisco, posDD)
-	cantidad := 0
-	for i := 0; i < 5; i++ {
-		if nuevoDD.DDarrayFiles[i].DDfileApInodo != -1 {
-			cantidad++
-		}
-	}
-	//if cantidad==5
 }
