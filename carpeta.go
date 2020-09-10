@@ -29,10 +29,27 @@ func crearCarpeta(vd string, path string, p bool) {
 				fmt.Println("Se va a crear la carpeta Raiz")
 
 				nuevoAVD := avd{}
+
+				nuevoDD := dd{}
+				for i := 0; i < 5; i++ {
+					nuevoDD.DDarrayFiles[i].DDfileApInodo = -1
+				}
+				nuevoDD.DDapDD = -1
+
+				posDD := superBloque.SBapDD + superBloque.SBfirstFreeBitDD*superBloque.SBsizeStructDD
+
+				superBloque.SBddFree--
+				actualizarValorBitmap(rutaDisco, superBloque.SBapBDD+superBloque.SBfirstFreeBitDD, '1')
+				nuevoFFBDD := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBDD, int(superBloque.SBddCount))
+
+				superBloque.SBfirstFreeBitDD = nuevoFFBDD
+
+				escribirStructDD(rutaDisco, posDD, nuevoDD)
+
 				for j := 0; j < 6; j++ {
 					nuevoAVD.AVDapArraySub[j] = -1
 				}
-				nuevoAVD.AVDapDetalleDir = -1
+				nuevoAVD.AVDapDetalleDir = posDD
 				nuevoAVD.AVDapAVD = -1
 				fecha := time.Now().Format("2006-01-02 15:04:05")
 				copy(nuevoAVD.AVDfechaCreacion[:], fecha)
@@ -90,8 +107,9 @@ func crearCarpeta(vd string, path string, p bool) {
 	}
 }
 
-func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) {
+func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) int64 {
 	var posAnterior int64 = 0
+	var posNuevo int64 = 0
 	posEncontrado := superBloque.SBapAVD
 	encontrado := false
 	pathPart := strings.Split(path2, "/")
@@ -104,10 +122,27 @@ func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) 
 			superBloque = obtenerSB(rutaDisco, inicioPart)
 
 			nuevoAVD := avd{}
+
+			nuevoDD := dd{}
+			for i := 0; i < 5; i++ {
+				nuevoDD.DDarrayFiles[i].DDfileApInodo = -1
+			}
+			nuevoDD.DDapDD = -1
+
+			posDD := superBloque.SBapDD + superBloque.SBfirstFreeBitDD*superBloque.SBsizeStructDD
+
+			superBloque.SBddFree--
+			actualizarValorBitmap(rutaDisco, superBloque.SBapBDD+superBloque.SBfirstFreeBitDD, '1')
+			nuevoFFBDD := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBDD, int(superBloque.SBddCount))
+
+			superBloque.SBfirstFreeBitDD = nuevoFFBDD
+
+			escribirStructDD(rutaDisco, posDD, nuevoDD)
+
 			for j := 0; j < 6; j++ {
 				nuevoAVD.AVDapArraySub[j] = -1
 			}
-			nuevoAVD.AVDapDetalleDir = -1
+			nuevoAVD.AVDapDetalleDir = posDD
 			nuevoAVD.AVDapAVD = -1
 			fecha := time.Now().Format("2006-01-02 15:04:05")
 			copy(nuevoAVD.AVDfechaCreacion[:], fecha)
@@ -117,7 +152,7 @@ func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) 
 			posFirstFreeBit := superBloque.SBfirstFreeBitAVD
 
 			posNuevoAVD := superBloque.SBapAVD + (posFirstFreeBit * superBloque.SBsizeStructAVD)
-
+			posNuevo = posNuevoAVD
 			avdPadre := obtenerAVD(rutaDisco, posAnterior)
 
 			for j := 0; j < len(avdPadre.AVDapArraySub); j++ {
@@ -129,6 +164,10 @@ func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) 
 
 			escribirStructAVD(rutaDisco, posAnterior, avdPadre)
 
+			/*fmt.Println("NUEVO AVD SUB")
+			fmt.Println(posNuevoAVD)
+			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+			fmt.Scanln()*/
 			escribirStructAVD(rutaDisco, posNuevoAVD, nuevoAVD)
 			superBloque.SBavdFree--
 			actualizarValorBitmap(rutaDisco, superBloque.SBapBAVD+posFirstFreeBit, '1')
@@ -141,6 +180,7 @@ func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) 
 			break
 		}
 	}
+	return posNuevo
 
 }
 
@@ -163,10 +203,27 @@ func nuevoAVDindirecto(pos int64, ruta string, superBloque sb, inicioPart int64)
 			posEncontrado = nuevoAVDindirecto(arbol.AVDapAVD, ruta, superBloque, inicioPart)
 		} else {
 			nuevoAVD := avd{}
+
+			nuevoDD := dd{}
+			for i := 0; i < 5; i++ {
+				nuevoDD.DDarrayFiles[i].DDfileApInodo = -1
+			}
+			nuevoDD.DDapDD = -1
+
+			posDD := superBloque.SBapDD + superBloque.SBfirstFreeBitDD*superBloque.SBsizeStructDD
+
+			superBloque.SBddFree--
+			actualizarValorBitmap(ruta, superBloque.SBapBDD+superBloque.SBfirstFreeBitDD, '1')
+			nuevoFFBDD := obtenerFirstFreeBit(ruta, superBloque.SBapBDD, int(superBloque.SBddCount))
+
+			superBloque.SBfirstFreeBitDD = nuevoFFBDD
+
+			escribirStructDD(ruta, posDD, nuevoDD)
+
 			for j := 0; j < 6; j++ {
 				nuevoAVD.AVDapArraySub[j] = -1
 			}
-			nuevoAVD.AVDapDetalleDir = -1
+			nuevoAVD.AVDapDetalleDir = posDD
 			nuevoAVD.AVDapAVD = -1
 			fecha := time.Now().Format("2006-01-02 15:04:05")
 			copy(nuevoAVD.AVDfechaCreacion[:], fecha)
@@ -180,7 +237,10 @@ func nuevoAVDindirecto(pos int64, ruta string, superBloque sb, inicioPart int64)
 			arbol.AVDapAVD = posNuevoAVD
 
 			escribirStructAVD(ruta, pos, arbol)
-
+			/*fmt.Println("NUEVO AVD INDIRECTO")
+			fmt.Println(posNuevoAVD)
+			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+			fmt.Scanln()*/
 			escribirStructAVD(ruta, posNuevoAVD, nuevoAVD)
 			superBloque.SBavdFree--
 			actualizarValorBitmap(ruta, superBloque.SBapBAVD+posFirstFreeBit, '1')

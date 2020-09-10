@@ -347,6 +347,7 @@ func nodosTreeDirectorio(rutaDisco string, pos int64) string {
 	for i := 0; i < len(arbol.AVDapArraySub); i++ {
 		dot += "<f" + strconv.Itoa(i) + ">|"
 	}
+	nombre = ""
 	dot += "<f6>|<f7>}}\"];\n\n"
 
 	for i := 0; i < len(arbol.AVDapArraySub); i++ {
@@ -386,12 +387,12 @@ func nodosTreeDirectorio(rutaDisco string, pos int64) string {
 func graficarDD(posDD int64, rutaDisco string) string {
 	directorio := obtenerDD(rutaDisco, posDD)
 
-	nombre := ""
 	dot := ""
 	dot += "\tstruct" + strconv.FormatInt(posDD, 10) + " [label=\"{"
 	for i := 0; i < 5; i++ {
 		dot += "<f" + strconv.Itoa(i) + "> "
 		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
+			nombre := ""
 			for j := 0; j < len(directorio.DDarrayFiles[i].DDfileNombre); j++ {
 				if directorio.DDarrayFiles[i].DDfileNombre[j] != 0 {
 					nombre += string(directorio.DDarrayFiles[i].DDfileNombre[j])

@@ -50,6 +50,7 @@ type datoDisco struct {
 	idn     string
 	nombre  string
 	ruta    string
+	cont    string
 }
 
 type banderaParam struct {
@@ -173,7 +174,7 @@ func analizador(cadena string) {
 					}
 
 					fmt.Println("Contenido: " + parametro)
-					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", ""}
+					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", "", ""}
 					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false, false}
 					/*dato = */ analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
@@ -264,6 +265,16 @@ func analizador(cadena string) {
 				case "mkdir":
 					if flagP.idY == true && flagP.pathY == true {
 						crearCarpeta(dato.idn, dato.path, flagP.guionP)
+					} else {
+						fmt.Println("Parametro obligatorio faltante")
+					}
+				case "mkfile":
+					if flagP.idY == true && flagP.pathY == true {
+						/*fmt.Println("Dir carpeta y archivo")
+						fmt.Println(dato.path)
+						fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+						fmt.Scanln()*/
+						crearArvhi(dato.idn, dato.path, flagP.guionP, dato.size, dato.cont)
 					} else {
 						fmt.Println("Parametro obligatorio faltante")
 					}
@@ -412,6 +423,8 @@ func almacenarValor(parametro string, contParam string, linea int) {
 		dato.ruta = contParam
 	case "p":
 		flagP.guionP = true
+	case "cont":
+		dato.cont = contParam
 	default:
 		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))
 	}
