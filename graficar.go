@@ -23,10 +23,17 @@ func graficar(path string, nombre string, id string, ruta string) {
 		dot := graficasb(id)
 		generar(dot, path)
 	} else if nombre == "directorio" {
-		dot := graficarTreeDirectorio(id)
+		dot := graficarTreeDirectorio(id, false, true)
 		generar(dot, path)
-	} else if nombre == "tree directorio" {
-
+	} else if nombre == "tree_file" {
+		dot := graficarTreeFile(id, true, ruta)
+		generar(dot, path)
+	} else if nombre == "tree_complete" {
+		dot := graficarTreeDirectorio(id, true, true)
+		generar(dot, path)
+	} else if nombre == "tree_directorio" {
+		dot := graficarTreeDirectorioUnico(id, true, false, ruta)
+		generar(dot, path)
 	}
 }
 
@@ -302,7 +309,7 @@ func graficasb(vd string) string {
 	return dot
 }
 
-func graficarTreeDirectorio(vd string) string {
+func graficarTreeDirectorio(vd string, treeComplete bool, conInodo bool) string {
 	var idDisco byte
 	idDisco = vd[2]
 	idDisco2 := idDisco - 97
@@ -321,7 +328,7 @@ func graficarTreeDirectorio(vd string) string {
 			rutaDisco := arregloMount[idDisco2].Ruta
 			superBloque := obtenerSB(rutaDisco, inicioPart)
 
-			dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD)
+			dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD, treeComplete, conInodo)
 
 			dot += "}"
 		} else {
@@ -334,7 +341,210 @@ func graficarTreeDirectorio(vd string) string {
 	return dot
 }
 
-func nodosTreeDirectorio(rutaDisco string, pos int64) string {
+func graficarTreeDirectorioUnico(vd string, treeComplete bool, conInodo bool, ruta string) string {
+	var idDisco byte
+	idDisco = vd[2]
+	idDisco2 := idDisco - 97
+	idP, _ := strconv.Atoi(vd[3:])
+	idP--
+
+	dot := ""
+
+	dot += "digraph treedd {\n" +
+		"\tnode [shape=record];\n\n"
+
+	if arregloMount[idDisco2].estado == 1 {
+		if arregloMount[idDisco2].discos[idP].estado == 1 {
+
+			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
+			rutaDisco := arregloMount[idDisco2].Ruta
+			superBloque := obtenerSB(rutaDisco, inicioPart)
+
+			//dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD, treeComplete)
+
+			path1 := strings.TrimPrefix(ruta, "/")
+			path2 := strings.TrimSuffix(path1, "/")
+			pathPart := strings.Split(path2, "/")
+			//fmt.Println(nombre)
+
+			encontrado := false
+			posEncontrado := superBloque.SBapAVD
+			//listaCarpetas := list.New()
+
+			type carpeta struct {
+				nombreC string
+				posC    int64
+			}
+			for i := 0; i < len(pathPart); i++ {
+				fmt.Println(pathPart[i])
+				encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
+				if encontrado == false {
+					break
+				}
+			}
+
+			if encontrado == true {
+				dot += nodosTreeDirectorio(rutaDisco, posEncontrado, treeComplete, conInodo)
+			} else {
+				fmt.Println("Carpetas inexistentes en la ruta proporcionada")
+			}
+
+			dot += "}"
+		} else {
+			fmt.Println("La particion indicada no esta montada")
+		}
+	} else {
+		fmt.Println("EL disco proporcionado no esta montado")
+	}
+	return dot
+}
+
+func graficarTreeFile(vd string, treeComplete bool, ruta string) string {
+	var idDisco byte
+	idDisco = vd[2]
+	idDisco2 := idDisco - 97
+	idP, _ := strconv.Atoi(vd[3:])
+	idP--
+
+	dot := ""
+
+	dot += "digraph treedd {\n" +
+		"\tnode [shape=record];\n\n"
+
+	if arregloMount[idDisco2].estado == 1 {
+		if arregloMount[idDisco2].discos[idP].estado == 1 {
+
+			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
+			rutaDisco := arregloMount[idDisco2].Ruta
+			superBloque := obtenerSB(rutaDisco, inicioPart)
+
+			//dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD, treeComplete)
+			path, nombre := descomponer(ruta)
+			path1 := strings.TrimPrefix(path, "/")
+			path2 := strings.TrimSuffix(path1, "/")
+			pathPart := strings.Split(path2, "/")
+			//fmt.Println(nombre)
+
+			encontrado := false
+			posEncontrado := superBloque.SBapAVD
+			listaCarpetas := list.New()
+
+			type carpeta struct {
+				nombreC string
+				posC    int64
+			}
+			for i := 0; i < len(pathPart); i++ {
+				fmt.Println(pathPart[i])
+				encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
+				if encontrado == false {
+					break
+				} else {
+					nuevaCarpeta := carpeta{}
+					nuevaCarpeta.nombreC = pathPart[i]
+					nuevaCarpeta.posC = posEncontrado
+					listaCarpetas.PushBack(nuevaCarpeta)
+				}
+			}
+
+			if encontrado == true {
+				ultima := listaCarpetas.Back().Value.(carpeta)
+				ultimaCarpeta := obtenerAVD(rutaDisco, ultima.posC)
+
+				archivoEncontrado, archivoPos := buscarArchivo(rutaDisco, ultimaCarpeta.AVDapDetalleDir, nombre)
+
+				if archivoEncontrado == true {
+
+					arbolraiz := obtenerAVD(rutaDisco, superBloque.SBapAVD)
+					nombrest := ""
+
+					for i := 0; i < len(arbolraiz.AVDnombreDirectorio); i++ {
+						if arbolraiz.AVDnombreDirectorio[i] != 0 {
+							nombrest += string(arbolraiz.AVDnombreDirectorio[i])
+						}
+					}
+					dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " [label=\"{ " + nombrest + " |{"
+
+					for i := 0; i < 6; i++ {
+						dot += "<f" + strconv.Itoa(i) + ">|"
+					}
+
+					dot += "<f6>|<f7>}}\"];\n\n"
+
+					hijoRaiz := listaCarpetas.Front().Value.(carpeta)
+
+					dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " -> " + "struct" + strconv.FormatInt(hijoRaiz.posC, 10)
+
+					nombrest = ""
+					for ele := listaCarpetas.Front(); ele != nil; ele = ele.Next() {
+						carpetaGrap := ele.Value.(carpeta)
+						arbol := obtenerAVD(rutaDisco, carpetaGrap.posC)
+						nombrest = ""
+
+						for i := 0; i < len(arbol.AVDnombreDirectorio); i++ {
+							if arbol.AVDnombreDirectorio[i] != 0 {
+								nombrest += string(arbol.AVDnombreDirectorio[i])
+							}
+						}
+						dot += "\tstruct" + strconv.FormatInt(carpetaGrap.posC, 10) + " [label=\"{ " + nombrest + " |{"
+						for i := 0; i < len(arbol.AVDapArraySub); i++ {
+							dot += "<f" + strconv.Itoa(i) + ">|"
+						}
+
+						dot += "<f6>|<f7>}}\"];\n\n"
+
+						if ele.Next() != nil {
+							proximo := ele.Next().Value.(carpeta)
+							dot += "\tstruct" + strconv.FormatInt(carpetaGrap.posC, 10) + " -> " + "struct" + strconv.FormatInt(proximo.posC, 10)
+						}
+					}
+					padreInodo := listaCarpetas.Back().Value.(carpeta)
+					dot += "\tstructarchivo [label=\"{ " + nombre + "}\"];\n\n"
+					dot += "\tstruct" + strconv.FormatInt(padreInodo.posC, 10) + " -> structarchivo"
+					dot += "\tstructarchivo -> struct" + strconv.FormatInt(archivoPos, 10)
+					dot += graficarInodo(archivoPos, rutaDisco)
+				} else {
+					fmt.Println("El archivo no existe")
+				}
+
+			} else {
+				fmt.Println("Carpetas inexistentes en la ruta proporcionada")
+			}
+
+			dot += "}"
+		} else {
+			fmt.Println("La particion indicada no esta montada")
+		}
+	} else {
+		fmt.Println("EL disco proporcionado no esta montado")
+	}
+
+	return dot
+}
+
+func buscarArchivo(rutaDisco string, pos int64, nombre string) (bool, int64) {
+	nuevoDD := obtenerDD(rutaDisco, pos)
+	var nombreb [20]byte
+	copy(nombreb[:], nombre)
+	var posInodo int64
+	encontrado := false
+	for i := 0; i < 5; i++ {
+		if nuevoDD.DDarrayFiles[i].DDfileNombre == nombreb {
+			posInodo = nuevoDD.DDarrayFiles[i].DDfileApInodo
+			encontrado = true
+			break
+		}
+	}
+
+	if encontrado == false {
+		if nuevoDD.DDapDD != -1 {
+			encontrado, posInodo = buscarArchivo(rutaDisco, nuevoDD.DDapDD, nombre)
+		}
+	}
+
+	return encontrado, posInodo
+}
+
+func nodosTreeDirectorio(rutaDisco string, pos int64, treeComplete bool, conInodo bool) string {
 	arbol := obtenerAVD(rutaDisco, pos)
 	nombre := ""
 	dot := ""
@@ -350,16 +560,20 @@ func nodosTreeDirectorio(rutaDisco string, pos int64) string {
 	nombre = ""
 	dot += "<f6>|<f7>}}\"];\n\n"
 
-	for i := 0; i < len(arbol.AVDapArraySub); i++ {
-		if arbol.AVDapArraySub[i] != -1 {
-			dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f" + strconv.Itoa(i) + " -> " +
-				"struct" + strconv.FormatInt(arbol.AVDapArraySub[i], 10) + ";\n"
+	if conInodo == true {
+
+		for i := 0; i < len(arbol.AVDapArraySub); i++ {
+			if arbol.AVDapArraySub[i] != -1 {
+				dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f" + strconv.Itoa(i) + " -> " +
+					"struct" + strconv.FormatInt(arbol.AVDapArraySub[i], 10) + ";\n"
+			}
 		}
 	}
-
-	if arbol.AVDapDetalleDir != -1 {
-		dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f6 -> " +
-			"struct" + strconv.FormatInt(arbol.AVDapDetalleDir, 10) + ";\n"
+	if treeComplete == true {
+		if arbol.AVDapDetalleDir != -1 {
+			dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f6 -> " +
+				"struct" + strconv.FormatInt(arbol.AVDapDetalleDir, 10) + ";\n"
+		}
 	}
 
 	if arbol.AVDapAVD != -1 {
@@ -367,24 +581,28 @@ func nodosTreeDirectorio(rutaDisco string, pos int64) string {
 			"struct" + strconv.FormatInt(arbol.AVDapAVD, 10) + "\n\n\n"
 	}
 
-	for i := 0; i < len(arbol.AVDapArraySub); i++ {
-		if arbol.AVDapArraySub[i] != -1 {
-			dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapArraySub[i])
+	if conInodo == true {
+		for i := 0; i < len(arbol.AVDapArraySub); i++ {
+			if arbol.AVDapArraySub[i] != -1 {
+				dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapArraySub[i], treeComplete, conInodo)
+			}
 		}
 	}
 
-	if arbol.AVDapDetalleDir != -1 {
-		dot += graficarDD(arbol.AVDapDetalleDir, rutaDisco)
+	if treeComplete == true {
+		if arbol.AVDapDetalleDir != -1 {
+			dot += graficarDD(arbol.AVDapDetalleDir, rutaDisco, conInodo)
+		}
 	}
 
 	if arbol.AVDapAVD != -1 {
-		dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD)
+		dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD, treeComplete, conInodo)
 	}
 
 	return dot
 }
 
-func graficarDD(posDD int64, rutaDisco string) string {
+func graficarDD(posDD int64, rutaDisco string, conInodo bool) string {
 	directorio := obtenerDD(rutaDisco, posDD)
 
 	dot := ""
@@ -406,9 +624,11 @@ func graficarDD(posDD int64, rutaDisco string) string {
 	}
 	dot += "<f5> Indi }\"];\n\n"
 
-	for i := 0; i < 5; i++ {
-		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
-			dot += "\tstruct" + strconv.FormatInt(posDD, 10) + ":f" + strconv.Itoa(i) + " -> struct" + strconv.FormatInt(directorio.DDarrayFiles[i].DDfileApInodo, 10) + ";\n\n"
+	if conInodo == true {
+		for i := 0; i < 5; i++ {
+			if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
+				dot += "\tstruct" + strconv.FormatInt(posDD, 10) + ":f" + strconv.Itoa(i) + " -> struct" + strconv.FormatInt(directorio.DDarrayFiles[i].DDfileApInodo, 10) + ";\n\n"
+			}
 		}
 	}
 
@@ -416,14 +636,16 @@ func graficarDD(posDD int64, rutaDisco string) string {
 		dot += "\tstruct" + strconv.FormatInt(posDD, 10) + ":f5 -> struct" + strconv.FormatInt(directorio.DDapDD, 10) + ";\n\n"
 	}
 
-	for i := 0; i < 5; i++ {
-		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
-			dot += graficarInodo(directorio.DDarrayFiles[i].DDfileApInodo, rutaDisco)
+	if conInodo == true {
+		for i := 0; i < 5; i++ {
+			if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
+				dot += graficarInodo(directorio.DDarrayFiles[i].DDfileApInodo, rutaDisco)
+			}
 		}
 	}
 
 	if directorio.DDapDD != -1 {
-		dot += graficarDD(directorio.DDapDD, rutaDisco)
+		dot += graficarDD(directorio.DDapDD, rutaDisco, conInodo)
 	}
 
 	return dot
