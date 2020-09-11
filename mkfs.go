@@ -93,6 +93,7 @@ type bitacora struct {
 	LOGnombre        [100]byte
 	LOGcontenido     [100]byte
 	LOGfecha         [19]byte
+	LOGsize          int32
 }
 
 func formatearPart(vd string, tipo string, add int64, unit byte) {
@@ -180,7 +181,15 @@ func formatearPart(vd string, tipo string, add int64, unit byte) {
 			// --------------------------------------------------------------------
 
 			// ----- ABRO ARCHIVO PARA ESCRIBIR EL SB -----------------------------
-			escribirSuperBloque(rutaDisco, inicioPart, superBloque) // <-------------- Comprobar
+			escribirSuperBloque(rutaDisco, inicioPart, superBloque)
+			posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+			escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
+			/*fmt.Println("Posicion en la que se inserto el super bloque copia")
+			fmt.Println(posCopiaSB)
+			fmt.Println("**********************************************************")
+			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+			fmt.Scanln()*/
+			// <-------------- Comprobar
 			// --------------------------------------------------------------------
 			escribirStructInicial(rutaDisco, superBloque) // <----------------VERIFICAR
 			// --------------------------------------------------------------------
@@ -311,6 +320,24 @@ func actualizarValorBitmap(path string, pos int64, valor byte) {
 	file.Close()
 }
 
+func escribirStructBitacora(path string, posAVD int64, bi bitacora) {
+	ar := bi
+	a := &ar
+	file, err := os.OpenFile(path, os.O_RDWR, 0777)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Seek(posAVD, 0)
+	var binario2 bytes.Buffer
+	err1 := binary.Write(&binario2, binary.BigEndian, a)
+	if err1 != nil {
+		fmt.Println("SuperBloque- binary error ", err1)
+	}
+	escribirBytes(file, binario2.Bytes())
+	file.Close()
+}
+
 func escribirStructInicial(path string, superbloque sb) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
 
@@ -333,6 +360,11 @@ func escribirStructInicial(path string, superbloque sb) {
 	a.AVDapAVD = -1
 	a.AVDproper = -1
 
+	fmt.Println("Cantidad de avd vacios a escribir")
+	fmt.Println(int(superbloque.SBavdCount))
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
+
 	for i := 0; i < int(superbloque.SBavdCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -350,6 +382,10 @@ func escribirStructInicial(path string, superbloque sb) {
 		d.DDarrayFiles[i].DDfileApInodo = -1
 	}
 	d.DDapDD = -1
+	fmt.Println("Cantidad de dd vacios a escribir")
+	fmt.Println(int(superbloque.SBddCount))
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
 	for i := 0; i < int(superbloque.SBddCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -371,6 +407,10 @@ func escribirStructInicial(path string, superbloque sb) {
 	}
 	ino.IapIndirecto = -1
 	ino.IidProper = -1
+	fmt.Println("Cantidad de inodos vacios a escribir")
+	fmt.Println(int(superbloque.SBinodosCount))
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
 	for i := 0; i < int(superbloque.SBinodosCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -385,6 +425,10 @@ func escribirStructInicial(path string, superbloque sb) {
 
 	posSeek = superbloque.SBapBLOQUE
 	b := bloque{}
+	fmt.Println("Cantidad de bloques vacios a escribir")
+	fmt.Println(int(superbloque.SBbloquesCount))
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
 	for i := 0; i < int(superbloque.SBbloquesCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -399,6 +443,11 @@ func escribirStructInicial(path string, superbloque sb) {
 
 	posSeek = superbloque.SBapLOG
 	bi := bitacora{}
+	bi.LOGtipo = 'x'
+	fmt.Println("Cantidad de logs vacios a escribir")
+	fmt.Println(int(superbloque.SBavdCount))
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
 	for i := 0; i < int(superbloque.SBavdCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -530,6 +579,33 @@ func obtenerBLOQUE(path string, pos int64) bloque {
 	}
 
 	s := bloque{}
+	var size int = int(unsafe.Sizeof(s))
+
+	file.Seek(pos, 0)
+	data := obtenerBytes(file, size)
+	buffer := bytes.NewBuffer(data)
+
+	//fmt.Println(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &s)
+	if err != nil {
+		log.Fatal("avd binary.Read failed", err)
+	}
+
+	//fmt.Println(m)
+	return s //, fallo
+}
+
+func obtenerbitacora(path string, pos int64) bitacora {
+	//fallo := false
+	file, err := os.Open(path)
+	defer file.Close()
+	if err != nil {
+		//fallo = true
+		panic(err)
+	}
+
+	s := bitacora{}
 	var size int = int(unsafe.Sizeof(s))
 
 	file.Seek(pos, 0)

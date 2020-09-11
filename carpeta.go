@@ -63,6 +63,9 @@ func crearCarpeta(vd string, path string, p bool) {
 
 				superBloque.SBfirstFreeBitAVD = nuevoFFBAVD
 				escribirSuperBloque(rutaDisco, inicioPart, superBloque)
+				var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+				posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+				escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 
 			} else {
 				fmt.Println("Crear carpetas en raiz")
@@ -98,6 +101,14 @@ func crearCarpeta(vd string, path string, p bool) {
 					}
 				}
 			}
+			bit := bitacora{}
+			copy(bit.LOGtipoOperacion[:], "mkdir")
+			bit.LOGtipo = '0'
+			copy(bit.LOGnombre[:], path)
+			fecha := time.Now().Format("2006-01-02 15:04:05")
+			copy(bit.LOGfecha[:], fecha)
+			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+			insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
 
 		} else {
 			fmt.Println("La particion indicada no esta montada")
@@ -170,6 +181,9 @@ func crearDir(rutaDisco string, superBloque sb, path2 string, inicioPart int64) 
 			superBloque.SBfirstFreeBitAVD = posFirstFreeBit
 
 			escribirSuperBloque(rutaDisco, inicioPart, superBloque)
+			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+			posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+			escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 
 			fmt.Println("Se creo el directorio: " + pathPart[i])
 			break
@@ -239,6 +253,9 @@ func nuevoAVDindirecto(pos int64, ruta string, superBloque sb, inicioPart int64)
 			superBloque.SBfirstFreeBitAVD = posFirstFreeBit
 
 			escribirSuperBloque(ruta, inicioPart, superBloque)
+			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+			posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+			escribirSuperBloque(ruta, posCopiaSB, superBloque)
 
 			tempNombre := ""
 
@@ -314,6 +331,18 @@ func obtenerFirstFreeBit(ruta string, posIni int64, tam int) int64 {
 
 	file.Close()
 	return int64(pos)
+}
+
+func insertaBitacora(ruta string, pos int64, bi bitacora, cantidad int64, tambit int64) {
+	for i := 0; i < int(cantidad); i++ {
+		bit := obtenerbitacora(ruta, pos)
+		if bit.LOGtipo == 'x' {
+			break
+		} else {
+			pos = pos + tambit
+		}
+	}
+	escribirStructBitacora(ruta, pos, bi)
 }
 
 /*

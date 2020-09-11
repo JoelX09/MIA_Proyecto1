@@ -34,6 +34,25 @@ func graficar(path string, nombre string, id string, ruta string) {
 	} else if nombre == "tree_directorio" {
 		dot := graficarTreeDirectorioUnico(id, true, false, ruta)
 		generar(dot, path)
+	} else if nombre == "bm_arbdir" {
+		dot := graficarbitmap(id, true, false, false, false)
+		pathtxt, nombretxt := descomponer(path)
+		archivotxt(pathtxt, nombretxt, dot)
+	} else if nombre == "bm_detdir" {
+		dot := graficarbitmap(id, false, true, false, false)
+		pathtxt, nombretxt := descomponer(path)
+		archivotxt(pathtxt, nombretxt, dot)
+	} else if nombre == "bm_inode" {
+		dot := graficarbitmap(id, false, false, true, false)
+		pathtxt, nombretxt := descomponer(path)
+		archivotxt(pathtxt, nombretxt, dot)
+	} else if nombre == "bm_block" {
+		dot := graficarbitmap(id, false, false, false, true)
+		pathtxt, nombretxt := descomponer(path)
+		archivotxt(pathtxt, nombretxt, dot)
+	} else if nombre == "bitacora" {
+		dot := dotBitacora(id)
+		generar(dot, path)
 	}
 }
 
@@ -693,6 +712,151 @@ func graficarInodo(posInodo int64, rutaDisco string) string {
 	return dot
 }
 
+func graficarbitmap(vd string, bavd bool, bdd bool, binodo bool, bbloque bool) string {
+	var idDisco byte
+	idDisco = vd[2]
+	idDisco2 := idDisco - 97
+	idP, _ := strconv.Atoi(vd[3:])
+	idP--
+
+	dot := ""
+
+	if arregloMount[idDisco2].estado == 1 {
+		if arregloMount[idDisco2].discos[idP].estado == 1 {
+
+			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
+			rutaDisco := arregloMount[idDisco2].Ruta
+			superBloque := obtenerSB(rutaDisco, inicioPart)
+
+			var listadoBits []byte
+
+			if bavd == true {
+				listadoBits = obtenerBitmap(rutaDisco, superBloque.SBapBAVD, superBloque.SBavdCount)
+			} else if bdd == true {
+				listadoBits = obtenerBitmap(rutaDisco, superBloque.SBapBDD, superBloque.SBddCount)
+			} else if binodo == true {
+				listadoBits = obtenerBitmap(rutaDisco, superBloque.SBapBINODO, superBloque.SBinodosCount)
+			} else if bbloque == true {
+				listadoBits = obtenerBitmap(rutaDisco, superBloque.SBapBBLOQUE, superBloque.SBbloquesCount)
+			}
+
+			for i := 0; i < len(listadoBits); i++ {
+				if listadoBits[i] == '1' {
+					dot += "1 |"
+				} else {
+					dot += "0 |"
+				}
+
+				if (i+1)%10 == 0 {
+					dot += "\n"
+				}
+			}
+
+		} else {
+			fmt.Println("La particion indicada no esta montada")
+		}
+	} else {
+		fmt.Println("EL disco proporcionado no esta montado")
+	}
+
+	return dot
+}
+
+func dotBitacora(vd string) string {
+	var idDisco byte
+	idDisco = vd[2]
+	idDisco2 := idDisco - 97
+	idP, _ := strconv.Atoi(vd[3:])
+	idP--
+
+	dot := ""
+
+	if arregloMount[idDisco2].estado == 1 {
+		if arregloMount[idDisco2].discos[idP].estado == 1 {
+
+			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
+			rutaDisco := arregloMount[idDisco2].Ruta
+			superBloque := obtenerSB(rutaDisco, inicioPart)
+			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+			dot += graficarBitacora(rutaDisco, superBloque.SBapLOG, superBloque.SBavdCount, sizeBitacora)
+		} else {
+			fmt.Println("La particion indicada no esta montada")
+		}
+	} else {
+		fmt.Println("EL disco proporcionado no esta montado")
+	}
+
+	return dot
+
+}
+
+func graficarBitacora(ruta string, pos int64, cantidad int64, tambit int64) string {
+	dot := ""
+	dot += "digraph treedd {\n" +
+		"\tnode [shape=record];\n\n"
+	indice := 0
+	for i := 0; i < int(cantidad); i++ {
+		bit := obtenerbitacora(ruta, pos)
+		if bit.LOGtipo != 'x' {
+			indice++
+			tipoOp := ""
+			for a := 0; a < 10; a++ {
+				if bit.LOGtipoOperacion[a] != 0 {
+					tipoOp += string(bit.LOGtipoOperacion[a])
+				}
+			}
+			cont := ""
+			for a := 0; a < 100; a++ {
+				if bit.LOGcontenido[a] != 0 {
+					cont += string(bit.LOGcontenido[a])
+				}
+			}
+			path := ""
+			for a := 0; a < 100; a++ {
+				if bit.LOGnombre[a] != 0 {
+					path += string(bit.LOGnombre[a])
+				}
+			}
+			fecha := ""
+			for a := 0; a < 19; a++ {
+				if bit.LOGfecha[a] != 0 {
+					fecha += string(bit.LOGfecha[a])
+				}
+			}
+			dot += "\tstruct" + strconv.FormatInt(pos, 10) + " [label=\"{ Log " + strconv.Itoa(indice) + " |{" +
+				"Tipo Operacion | Tipo | Path | Contenido | Fecha Log | Size}|{" + tipoOp + " | " + string(bit.LOGtipo) +
+				" | " + path + " | " + cont + " | " + fecha + " | " + strconv.Itoa(int(bit.LOGsize)) +
+				"}}\"];\n\n"
+
+		}
+		pos = pos + tambit
+
+	}
+	dot += "}"
+
+	return dot
+}
+
+func archivotxt(path string, nombre string, datos string) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0777)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	f, err := os.Create(path + nombre)
+	if err != nil {
+		panic(err)
+	}
+	f.Close()
+
+	err = ioutil.WriteFile(path+nombre, []byte(datos), 0777)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func generarDOT(dot string, path string, nombre string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err = os.MkdirAll(path, 0777)
@@ -702,7 +866,8 @@ func generarDOT(dot string, path string, nombre string) {
 	}
 
 	nombreDot := nombre
-	nombreDot = strings.ReplaceAll(nombreDot, "png", "dot")
+	ext := strings.Split(nombre, ".")
+	nombreDot = strings.ReplaceAll(nombreDot, ext[1], "dot")
 	f, err := os.Create(path + nombreDot)
 	if err != nil {
 		panic(err)
@@ -716,7 +881,9 @@ func generarDOT(dot string, path string, nombre string) {
 	pathdot := path + nombreDot
 	pathimg := path + nombre
 
-	cmd := exec.Command("dot", "-Tpng", pathdot, "-o", pathimg)
+	param := "-T" + ext[1]
+
+	cmd := exec.Command("dot", param, pathdot, "-o", pathimg)
 	cmd.Run()
 }
 

@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 func crearArvhi(vd string, path string, p bool, size int64, cont string) {
@@ -26,8 +31,10 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 				//****************************************** Contenido **************************************************//
 				fmt.Println("Se va a crear users.txt")
 				contenido := "1,G,root      \n1,U,root      ,root      ,201403975 \n"
+				cont = contenido
 				contBytes := []byte(contenido)
 				tamContenido := len(contBytes)
+				size = int64(tamContenido)
 
 				cantidadBloques := tamContenido / 25
 				cantidadBloqueD := tamContenido % 25
@@ -89,34 +96,9 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 					fecha = time.Now().Format("2006-01-02 15:04:05")
 					copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
 					fmt.Println("Pos arreglo y si esta libre")
-					/*for i := 0; i < 5; i++ {
-						if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-							fmt.Println("La posicion esta libre")
-							fmt.Println(i)
-							fmt.Println("Valor")
-							fmt.Println(nuevoDD.DDarrayFiles[i].DDfileApInodo)
-						} else {
-							fmt.Println("La posicion esta ocupada")
-							fmt.Println(i)
-							fmt.Println("Valor")
-							fmt.Println(nuevoDD.DDarrayFiles[i].DDfileApInodo)
-						}
-					}*/
-					/*fmt.Println("=======================================================================================")
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()*/
+
 					for i := 0; i < 5; i++ {
 						if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-							/*fmt.Println("Voy a insertar el archivo")
-							fmt.Println(nombreArchivo)
-							fmt.Println("EN la pos del arreglo de archivos")
-							fmt.Println(i)
-							fmt.Println("Caber tantos arreglos")
-							fmt.Println(len(nuevoDD.DDarrayFiles))
-							fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-							fmt.Scanln()
-							fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-							fmt.Scanln()*/
 							nuevoDD.DDarrayFiles[i] = nuevoArreglogArchivo
 							break
 						}
@@ -140,15 +122,14 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 					escribirStructINODO(rutaDisco, posNuevoInodo, nuevoInodo)
 
 					escribirSuperBloque(rutaDisco, inicioPart, superBloque)
+					var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+					posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+					escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 					superBloque = obtenerSB(rutaDisco, inicioPart)
 
 					llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true)
 
 				} else {
-					/*fmt.Println("******************************************************")
-					fmt.Println("Faltan carpetas")
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()*/
 					var posUltimaCarpeta int64
 					if t == len(pathPart)-1 {
 						posUltimaCarpeta = crearDir(rutaDisco, superBloque, path2, inicioPart)
@@ -172,6 +153,15 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 
 				}
 			}
+			bit := bitacora{}
+			copy(bit.LOGtipoOperacion[:], "mkfile")
+			bit.LOGtipo = '1'
+			copy(bit.LOGnombre[:], path)
+			copy(bit.LOGcontenido[:], cont)
+			fecha := time.Now().Format("2006-01-02 15:04:05")
+			copy(bit.LOGfecha[:], fecha)
+			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+			insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
 		} else {
 			fmt.Println("La particion indicada no esta montada")
 		}
@@ -194,10 +184,6 @@ func verficarNuevoDD(rutaDisco string, posDD int64, pos int64) (dd, int64) {
 		if nuevoDD.DDapDD != -1 {
 			nuevoDD, posDD = verficarNuevoDD(rutaDisco, nuevoDD.DDapDD, pos)
 		} else {
-			/*fmt.Println("******************************************************")
-			fmt.Println("El dd esta lleno crear nuevo DD")
-			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()*/
 			superBloque := obtenerSB(rutaDisco, pos)
 			nuevo := dd{}
 
@@ -217,6 +203,9 @@ func verficarNuevoDD(rutaDisco string, posDD int64, pos int64) (dd, int64) {
 			escribirStructDD(rutaDisco, posDD, nuevoDD)
 			escribirStructDD(rutaDisco, posNuevo, nuevo)
 			escribirSuperBloque(rutaDisco, pos, superBloque)
+			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+			posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+			escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 
 			nuevoDD = nuevo
 			posDD = posNuevo
@@ -226,47 +215,6 @@ func verficarNuevoDD(rutaDisco string, posDD int64, pos int64) (dd, int64) {
 	return nuevoDD, posDD
 }
 
-/*
-func verficarNuevoI(rutaDisco string, posI int64, pos int64) (inodo, int64) {
-	nuevoI := obtenerINODO(rutaDisco, posI)
-	cantidad := 0
-
-	for i := 0; i < len(nuevoI.IarrayBloques); i++ {
-		if nuevoI.IarrayBloques[i] != -1 {
-			cantidad++
-		}
-	}
-
-	if cantidad == 3 {
-		if nuevoI.IapIndirecto != -1 {
-			nuevoI, posI = verficarNuevoI(rutaDisco, nuevoI.IapIndirecto, pos)
-		} else {
-			superBloque := obtenerSB(rutaDisco, pos)
-			nuevo := inodo{}
-
-			for i := 0; i < 4; i++ {
-				nuevo.IarrayBloques[i] = -1
-			}
-			nuevo.IapIndirecto = -1
-
-			posNuevo := superBloque.SBapINODO + superBloque.SBfirstFreeBitINODO*superBloque.SBsizeStructINODO
-
-			superBloque.SBinodosFree--
-			actualizarValorBitmap(rutaDisco, superBloque.SBapBINODO+superBloque.SBfirstFreeBitINODO, '1')
-			nuevoFFBINODO := obtenerFirstFreeBit(rutaDisco, superBloque.SBapBINODO, int(superBloque.SBinodosCount))
-
-			superBloque.SBfirstFreeBitDD = nuevoFFBINODO
-
-			escribirStructINODO(rutaDisco, posNuevo, nuevo)
-
-			nuevoI = nuevo
-			posI = posNuevo
-		}
-
-	}
-	return inodo{}, posI
-}
-*/
 func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloque sb, inicioPart int64, existeContenido bool) {
 	contB := []byte(cont)
 	termino := false
@@ -301,6 +249,9 @@ func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloq
 
 		superBloque.SBfirstFreeBitBLOQUE = nuevoFFBBLOQUE
 		escribirSuperBloque(rutaDisco, inicioPart, superBloque)
+		var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+		posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+		escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 		superBloque = obtenerSB(rutaDisco, inicioPart)
 
 		nuevoInodo.IarrayBloques[i] = posNuevoBloque
@@ -347,6 +298,9 @@ func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloq
 
 			escribirStructINODO(rutaDisco, posNuevoInodoIndirecto, nuevoInodoIndirecto)
 			escribirSuperBloque(rutaDisco, inicioPart, superBloque)
+			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+			posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+			escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 			superBloque = obtenerSB(rutaDisco, inicioPart)
 
 			contres := ""
@@ -384,16 +338,6 @@ func codigoRepetido(rutaDisco string, posUltimaCarpeta int64, cont string, size 
 	copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
 	for i := 0; i < 5; i++ {
 		if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
-			/*fmt.Println("Voy a insertar el archivo")
-			fmt.Println(nombreArchivo)
-			fmt.Println("EN la pos del arreglo de archivos")
-			fmt.Println(i)
-			fmt.Println("Caber tantos arreglos")
-			fmt.Println(len(nuevoDD.DDarrayFiles))
-			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()
-			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()*/
 			nuevoDD.DDarrayFiles[i] = nuevoArreglogArchivo
 			break
 		}
@@ -417,8 +361,43 @@ func codigoRepetido(rutaDisco string, posUltimaCarpeta int64, cont string, size 
 	escribirStructINODO(rutaDisco, posNuevoInodo, nuevoInodo)
 
 	escribirSuperBloque(rutaDisco, inicioPart, superBloque)
+	var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+	posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
+	escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 	superBloque = obtenerSB(rutaDisco, inicioPart)
 
 	llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true)
 
+}
+
+func obtenerBitmap(path string, inicio int64, tam int64) []byte {
+
+	f, err := os.Open(path)
+	defer f.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	/*fmt.Println("Archivo con los bitmap")
+	fmt.Println(path)
+	fmt.Println("POsicion desde la que leere")
+	fmt.Println(inicio)
+	fmt.Println("Cantidad de bits")
+	fmt.Println(tam)
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()*/
+	temptam := make([]byte, tam)
+	var size int = len(temptam)
+	f.Seek(inicio, 0)
+
+	data := obtenerBytes(f, size)
+	buffer := bytes.NewBuffer(data)
+
+	err = binary.Read(buffer, binary.BigEndian, &temptam)
+	if err != nil {
+		log.Fatal("bitmap.Read failed", err)
+	}
+
+	return temptam
 }
