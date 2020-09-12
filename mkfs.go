@@ -184,17 +184,11 @@ func formatearPart(vd string, tipo string, add int64, unit byte) {
 			escribirSuperBloque(rutaDisco, inicioPart, superBloque)
 			posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
 			escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
-			/*fmt.Println("Posicion en la que se inserto el super bloque copia")
-			fmt.Println(posCopiaSB)
-			fmt.Println("**********************************************************")
-			fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-			fmt.Scanln()*/
-			// <-------------- Comprobar
 			// --------------------------------------------------------------------
 			escribirStructInicial(rutaDisco, superBloque) // <----------------VERIFICAR
 			// --------------------------------------------------------------------
-			crearCarpeta(vd, "/", true)
-			crearArvhi(vd, "/users.txt", true, 0, "")
+			crearCarpeta(vd, "/", true, true)
+			crearArvhi(vd, "/users.txt", true, 0, "", true)
 
 		} else {
 			fmt.Println("La particion indica no esta mon")
@@ -360,11 +354,6 @@ func escribirStructInicial(path string, superbloque sb) {
 	a.AVDapAVD = -1
 	a.AVDproper = -1
 
-	fmt.Println("Cantidad de avd vacios a escribir")
-	fmt.Println(int(superbloque.SBavdCount))
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
-
 	for i := 0; i < int(superbloque.SBavdCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -382,10 +371,7 @@ func escribirStructInicial(path string, superbloque sb) {
 		d.DDarrayFiles[i].DDfileApInodo = -1
 	}
 	d.DDapDD = -1
-	fmt.Println("Cantidad de dd vacios a escribir")
-	fmt.Println(int(superbloque.SBddCount))
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
+
 	for i := 0; i < int(superbloque.SBddCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -407,10 +393,7 @@ func escribirStructInicial(path string, superbloque sb) {
 	}
 	ino.IapIndirecto = -1
 	ino.IidProper = -1
-	fmt.Println("Cantidad de inodos vacios a escribir")
-	fmt.Println(int(superbloque.SBinodosCount))
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
+
 	for i := 0; i < int(superbloque.SBinodosCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -425,10 +408,7 @@ func escribirStructInicial(path string, superbloque sb) {
 
 	posSeek = superbloque.SBapBLOQUE
 	b := bloque{}
-	fmt.Println("Cantidad de bloques vacios a escribir")
-	fmt.Println(int(superbloque.SBbloquesCount))
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
+
 	for i := 0; i < int(superbloque.SBbloquesCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -444,10 +424,7 @@ func escribirStructInicial(path string, superbloque sb) {
 	posSeek = superbloque.SBapLOG
 	bi := bitacora{}
 	bi.LOGtipo = 'x'
-	fmt.Println("Cantidad de logs vacios a escribir")
-	fmt.Println(int(superbloque.SBavdCount))
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
+
 	for i := 0; i < int(superbloque.SBavdCount); i++ {
 		file.Seek(posSeek, 0)
 		var binario2 bytes.Buffer
@@ -622,10 +599,3 @@ func obtenerbitacora(path string, pos int64) bitacora {
 	//fmt.Println(m)
 	return s //, fallo
 }
-
-/*func escribirBytesS(file *os.File, bytes []byte) {
-	_, err := file.Write(bytes)
-	if err != nil {
-		log.Fatal(err)
-	}
-}*/

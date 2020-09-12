@@ -264,13 +264,25 @@ func analizador(cadena string) {
 					}
 				case "mkdir":
 					if flagP.idY == true && flagP.pathY == true {
-						crearCarpeta(dato.idn, dato.path, flagP.guionP)
+						crearCarpeta(dato.idn, dato.path, flagP.guionP, true)
 					} else {
 						fmt.Println("Parametro obligatorio faltante")
 					}
 				case "mkfile":
 					if flagP.idY == true && flagP.pathY == true {
-						crearArvhi(dato.idn, dato.path, flagP.guionP, dato.size, dato.cont)
+						crearArvhi(dato.idn, dato.path, flagP.guionP, dato.size, dato.cont, true)
+					} else {
+						fmt.Println("Parametro obligatorio faltante")
+					}
+				case "loss":
+					if flagP.idY == true {
+						loss(dato.idn)
+					} else {
+						fmt.Println("Parametro obligatorio faltante")
+					}
+				case "recovery":
+					if flagP.idY == true {
+						recorery(dato.idn)
 					} else {
 						fmt.Println("Parametro obligatorio faltante")
 					}

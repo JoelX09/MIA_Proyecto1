@@ -53,6 +53,8 @@ func graficar(path string, nombre string, id string, ruta string) {
 	} else if nombre == "bitacora" {
 		dot := dotBitacora(id)
 		generar(dot, path)
+	} else {
+		fmt.Println("El reportes solicitado es incorrecto")
 	}
 }
 
@@ -280,6 +282,25 @@ func graficasb(vd string) string {
 					nombrePart += string(superbloque.SBnombreHd[i])
 				}
 			}
+			fecha1 := ""
+			for i := 0; i < len(superbloque.SBdateCreacion); i++ {
+				if superbloque.SBdateCreacion[i] != 0 {
+					fecha1 += string(superbloque.SBdateCreacion[i])
+				}
+			}
+			if fecha1 == "" {
+				fecha1 = "Loss"
+			}
+
+			fecha2 := ""
+			for i := 0; i < len(superbloque.SBdateLastMount); i++ {
+				if superbloque.SBdateLastMount[i] != 0 {
+					fecha2 += string(superbloque.SBdateLastMount[i])
+				}
+			}
+			if fecha2 == "" {
+				fecha2 = "Loss"
+			}
 
 			dot += "digraph G {\n" +
 				"\tnode [shape=plaintext]\n" +
@@ -295,8 +316,8 @@ func graficasb(vd string) string {
 				"		<tr><td><b>sb_detalle_directorio_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBddFree, 10) + "</b></td></tr>\n" +
 				"		<tr><td><b>sb_inodos_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBinodosFree, 10) + "</b></td></tr>\n" +
 				"		<tr><td><b>sb_bloques_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBbloquesFree, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_date_creacion</b></td><td><b>" + string(superbloque.SBdateCreacion[:]) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_date_ultimo_montaje</b></td><td><b>" + string(superbloque.SBdateLastMount[:]) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_date_creacion</b></td><td><b>" + fecha1 + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_date_ultimo_montaje</b></td><td><b>" + fecha2 + "</b></td></tr>\n" +
 				"		<tr><td><b>sb_montajes_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBmontajesCount, 10) + "</b></td></tr>\n" +
 				"		<tr><td><b>sb_ap_bitmap_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBAVD, 10) + "</b></td></tr>\n" +
 				"		<tr><td><b>sb_ap_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapAVD, 10) + "</b></td></tr>\n" +
@@ -747,7 +768,7 @@ func graficarbitmap(vd string, bavd bool, bdd bool, binodo bool, bbloque bool) s
 					dot += "0 |"
 				}
 
-				if (i+1)%10 == 0 {
+				if (i+1)%20 == 0 {
 					dot += "\n"
 				}
 			}

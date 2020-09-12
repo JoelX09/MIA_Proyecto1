@@ -12,7 +12,7 @@ import (
 	"unsafe"
 )
 
-func crearCarpeta(vd string, path string, p bool) {
+func crearCarpeta(vd string, path string, p bool, registro bool) {
 	var idDisco byte
 	idDisco = vd[2]
 	idDisco2 := idDisco - 97
@@ -101,14 +101,16 @@ func crearCarpeta(vd string, path string, p bool) {
 					}
 				}
 			}
-			bit := bitacora{}
-			copy(bit.LOGtipoOperacion[:], "mkdir")
-			bit.LOGtipo = '0'
-			copy(bit.LOGnombre[:], path)
-			fecha := time.Now().Format("2006-01-02 15:04:05")
-			copy(bit.LOGfecha[:], fecha)
-			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
-			insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
+			if registro == true {
+				bit := bitacora{}
+				copy(bit.LOGtipoOperacion[:], "mkdir")
+				bit.LOGtipo = '0'
+				copy(bit.LOGnombre[:], path)
+				fecha := time.Now().Format("2006-01-02 15:04:05")
+				copy(bit.LOGfecha[:], fecha)
+				var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+				insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
+			}
 
 		} else {
 			fmt.Println("La particion indicada no esta montada")
@@ -272,7 +274,6 @@ func nuevoAVDindirecto(pos int64, ruta string, superBloque sb, inicioPart int64)
 }
 
 func buscarDir(pos int64, nombre string, ruta string) (bool, int64) {
-
 	arbol := obtenerAVD(ruta, pos)
 	encontrado := false
 	var posEncontrado int64 = 0

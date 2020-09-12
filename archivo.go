@@ -12,7 +12,7 @@ import (
 	"unsafe"
 )
 
-func crearArvhi(vd string, path string, p bool, size int64, cont string) {
+func crearArvhi(vd string, path string, p bool, size int64, cont string, registro bool) {
 	var idDisco byte
 	idDisco = vd[2]
 	idDisco2 := idDisco - 97
@@ -153,15 +153,17 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string) {
 
 				}
 			}
-			bit := bitacora{}
-			copy(bit.LOGtipoOperacion[:], "mkfile")
-			bit.LOGtipo = '1'
-			copy(bit.LOGnombre[:], path)
-			copy(bit.LOGcontenido[:], cont)
-			fecha := time.Now().Format("2006-01-02 15:04:05")
-			copy(bit.LOGfecha[:], fecha)
-			var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
-			insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
+			if registro == true {
+				bit := bitacora{}
+				copy(bit.LOGtipoOperacion[:], "mkfile")
+				bit.LOGtipo = '1'
+				copy(bit.LOGnombre[:], path)
+				copy(bit.LOGcontenido[:], cont)
+				fecha := time.Now().Format("2006-01-02 15:04:05")
+				copy(bit.LOGfecha[:], fecha)
+				var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
+				insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
+			}
 		} else {
 			fmt.Println("La particion indicada no esta montada")
 		}
@@ -377,16 +379,6 @@ func obtenerBitmap(path string, inicio int64, tam int64) []byte {
 	if err != nil {
 		log.Fatal(err)
 	}
-	/*fmt.Println("Archivo con los bitmap")
-	fmt.Println(path)
-	fmt.Println("POsicion desde la que leere")
-	fmt.Println(inicio)
-	fmt.Println("Cantidad de bits")
-	fmt.Println(tam)
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()*/
 	temptam := make([]byte, tam)
 	var size int = len(temptam)
 	f.Seek(inicio, 0)
