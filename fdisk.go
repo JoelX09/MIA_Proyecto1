@@ -331,7 +331,6 @@ func eliminarParticion(fd datoDisco) {
 					for eleL := listaL.Front(); eleL != nil; eleL = eleL.Next() {
 						tempL := eleL.Value.(estructEBR)
 						if tempL.EstadoL == 1 {
-
 							if tempL.PartnameL == tempcomp {
 								if strings.ToLower(fd.deleteP) == "fast" {
 									if confirmarEliminacion() == true {
@@ -374,7 +373,7 @@ func eliminarParticion(fd datoDisco) {
 												}
 												var tamEBR int64
 												tamEBR = int64(unsafe.Sizeof(ebr{}))
-												deleteFull(fd.path, tempL.PartstartL+tamEBR, tempL.PartsizeL-tempL.PartstartL+tamEBR)
+												deleteFull(fd.path, tempL.PartstartL+tamEBR, tempL.PartsizeL-tamEBR)
 												listaL.Remove(eleL)
 												listaL.PushFront(tempL)
 												fmt.Println("Particion eliminada correctamente")
@@ -564,7 +563,6 @@ func aumentarParticion(fd datoDisco) {
 			if temp.Partname == tempcomp && unidad == true {
 				var cero int64
 				cero = 0
-
 				tempSig := ele.Next()
 				tempSigVal := tempSig.Value.(nodoPart)
 				if fd.add >= cero {
@@ -586,6 +584,10 @@ func aumentarParticion(fd datoDisco) {
 							econtrado = true
 							break
 						}
+					} else {
+						fmt.Println("No hay espacio libre despues de la particion para aumentar. Se encuentra otra particion")
+						econtrado = true
+						break
 					}
 				} else {
 					if temp.Partsize+tam > 0 {
@@ -982,7 +984,6 @@ func escribirListaEbr(path string, listaL *list.List) {
 	for ele := listaL.Front(); ele != nil; ele = ele.Next() {
 		temp := ele.Value.(estructEBR)
 		if temp.EstadoL == 1 {
-
 			asignarebr := ebr{}
 			asignarebr.Partstatus = temp.PartstatusL
 			asignarebr.Partfit = temp.PartfitL

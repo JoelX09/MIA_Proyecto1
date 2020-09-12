@@ -188,7 +188,7 @@ func analizador(cadena string) {
 				case "exec":
 					archivo, err := ioutil.ReadFile(dato.path)
 					if err != nil {
-						fmt.Printf("Error leyendo archivo: %v", err)
+						fmt.Printf("Error leyendo archivo: %v\n", err)
 					}
 					contenido := string(archivo)
 					analizador(contenido)
@@ -298,6 +298,7 @@ func analizador(cadena string) {
 }
 
 func analizadorParametros(cadena string, linea int) /*datoDisco */ {
+	listaID.Init()
 	cadena += "#"
 	estado := 0
 	var parametro, contParam string
@@ -307,6 +308,8 @@ func analizadorParametros(cadena string, linea int) /*datoDisco */ {
 			if cadena[i] == '-' {
 				estado = 1
 				parametro = ""
+			} else if cadena[i] == 32 { // Agregue este espacio en blaco
+				estado = 0
 			} else {
 				fmt.Println("Error en la linea: " + strconv.Itoa(linea) + "columna: " + strconv.Itoa(i+1))
 			}

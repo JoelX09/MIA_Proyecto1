@@ -125,12 +125,16 @@ func graficaMBR(vd string) string {
 							nombrePart += string(temp.PartnameL[i])
 						}
 					}
+					partfit := ""
+					if temp.PartfitL != 0 {
+						partfit = string(temp.PartfitL)
+					}
 					dot += "\n\tb" + strconv.Itoa(pos) + " [label=<\n" +
 						"\t<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n\n" +
 						"\t<tr><td colspan=\"2\">EBR" + strconv.Itoa(pos) + "</td></tr>\n" +
 						"		<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n" +
 						"		<tr><td><b>part_status_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartstatusL)) + "</td></tr>\n" +
-						"		<tr><td><b>part_fit_" + strconv.Itoa(pos) + "</b></td><td>" + string(temp.PartfitL) + "</td></tr>\n" +
+						"		<tr><td><b>part_fit_" + strconv.Itoa(pos) + "</b></td><td>" + partfit + "</td></tr>\n" +
 						"		<tr><td><b>part_start_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartstartL)) + "</td></tr>\n" +
 						"		<tr><td><b>part_size_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartsizeL)) + "</td></tr>\n" +
 						"		<tr><td><b>part_next_" + strconv.Itoa(pos) + "</b></td><td>" + strconv.Itoa(int(temp.PartnextL)) + "</td></tr>\n" +
@@ -585,60 +589,64 @@ func buscarArchivo(rutaDisco string, pos int64, nombre string) (bool, int64) {
 }
 
 func nodosTreeDirectorio(rutaDisco string, pos int64, treeComplete bool, conInodo bool) string {
+
 	arbol := obtenerAVD(rutaDisco, pos)
-	nombre := ""
+	temparbol := avd{}
 	dot := ""
-	for i := 0; i < len(arbol.AVDnombreDirectorio); i++ {
-		if arbol.AVDnombreDirectorio[i] != 0 {
-			nombre += string(arbol.AVDnombreDirectorio[i])
-		}
-	}
-	dot += "\tstruct" + strconv.FormatInt(pos, 10) + " [label=\"{ " + nombre + " |{"
-	for i := 0; i < len(arbol.AVDapArraySub); i++ {
-		dot += "<f" + strconv.Itoa(i) + ">|"
-	}
-	nombre = ""
-	dot += "<f6>|<f7>}}\"];\n\n"
+	if arbol != temparbol {
+		nombre := ""
 
-	if conInodo == true {
-
-		for i := 0; i < len(arbol.AVDapArraySub); i++ {
-			if arbol.AVDapArraySub[i] != -1 {
-				dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f" + strconv.Itoa(i) + " -> " +
-					"struct" + strconv.FormatInt(arbol.AVDapArraySub[i], 10) + ";\n"
+		for i := 0; i < len(arbol.AVDnombreDirectorio); i++ {
+			if arbol.AVDnombreDirectorio[i] != 0 {
+				nombre += string(arbol.AVDnombreDirectorio[i])
 			}
 		}
-	}
-	if treeComplete == true {
-		if arbol.AVDapDetalleDir != -1 {
-			dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f6 -> " +
-				"struct" + strconv.FormatInt(arbol.AVDapDetalleDir, 10) + ";\n"
-		}
-	}
-
-	if arbol.AVDapAVD != -1 {
-		dot += "\n\tstruct" + strconv.FormatInt(pos, 10) + ":f7 -> " +
-			"struct" + strconv.FormatInt(arbol.AVDapAVD, 10) + "\n\n\n"
-	}
-
-	if conInodo == true {
+		dot += "\tstruct" + strconv.FormatInt(pos, 10) + " [label=\"{ " + nombre + " |{"
 		for i := 0; i < len(arbol.AVDapArraySub); i++ {
-			if arbol.AVDapArraySub[i] != -1 {
-				dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapArraySub[i], treeComplete, conInodo)
+			dot += "<f" + strconv.Itoa(i) + ">|"
+		}
+		nombre = ""
+		dot += "<f6>|<f7>}}\"];\n\n"
+
+		if conInodo == true {
+
+			for i := 0; i < len(arbol.AVDapArraySub); i++ {
+				if arbol.AVDapArraySub[i] != -1 {
+					dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f" + strconv.Itoa(i) + " -> " +
+						"struct" + strconv.FormatInt(arbol.AVDapArraySub[i], 10) + ";\n"
+				}
 			}
 		}
-	}
+		if treeComplete == true {
+			if arbol.AVDapDetalleDir != -1 {
+				dot += "\tstruct" + strconv.FormatInt(pos, 10) + ":f6 -> " +
+					"struct" + strconv.FormatInt(arbol.AVDapDetalleDir, 10) + ";\n"
+			}
+		}
 
-	if treeComplete == true {
-		if arbol.AVDapDetalleDir != -1 {
-			dot += graficarDD(arbol.AVDapDetalleDir, rutaDisco, conInodo)
+		if arbol.AVDapAVD != -1 {
+			dot += "\n\tstruct" + strconv.FormatInt(pos, 10) + ":f7 -> " +
+				"struct" + strconv.FormatInt(arbol.AVDapAVD, 10) + "\n\n\n"
+		}
+
+		if conInodo == true {
+			for i := 0; i < len(arbol.AVDapArraySub); i++ {
+				if arbol.AVDapArraySub[i] != -1 {
+					dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapArraySub[i], treeComplete, conInodo)
+				}
+			}
+		}
+
+		if treeComplete == true {
+			if arbol.AVDapDetalleDir != -1 {
+				dot += graficarDD(arbol.AVDapDetalleDir, rutaDisco, conInodo)
+			}
+		}
+
+		if arbol.AVDapAVD != -1 {
+			dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD, treeComplete, conInodo)
 		}
 	}
-
-	if arbol.AVDapAVD != -1 {
-		dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD, treeComplete, conInodo)
-	}
-
 	return dot
 }
 

@@ -34,6 +34,21 @@ func loss(vd string) {
 			posCopiaSB := superBloque.SBapLOG + (superBloque.SBavdCount * sizeBitacora)
 			structLoss.posCopiaSB = posCopiaSB
 			deleteFull(rutaDisco, inicioPart, superBloque.SBapLOG-superBloque.SBapAVD)
+			superBloque.SBavdFree = superBloque.SBavdCount
+			superBloque.SBddFree = superBloque.SBddCount
+			superBloque.SBinodosFree = superBloque.SBinodosCount
+			superBloque.SBbloquesFree = superBloque.SBbloquesCount
+			var fecha [19]byte
+			var nombre [16]byte
+			superBloque.SBdateCreacion = fecha
+			superBloque.SBdateLastMount = fecha
+			superBloque.SBmontajesCount = 0
+			superBloque.SBnombreHd = nombre
+			superBloque.SBfirstFreeBitAVD = 0
+			superBloque.SBfirstFreeBitDD = 0
+			superBloque.SBfirstFreeBitINODO = 0
+			superBloque.SBfirstFreeBitBLOQUE = 0
+			escribirSuperBloque(rutaDisco, inicioPart, superBloque)
 
 		} else {
 			fmt.Println("La particion indicada no esta montada")
