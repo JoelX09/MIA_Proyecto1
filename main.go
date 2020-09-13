@@ -211,7 +211,7 @@ func analizador(cadena string) {
 					if eleccion == "y" {
 						err := os.Remove(dato.path)
 						if err != nil {
-							fmt.Printf("Error eliminando archivo: %v\n", err)
+							fmt.Println("Error eliminando archivo: No se encontro el archivo" /*%v\n", err*/)
 						} else {
 							fmt.Println("Eliminado correctamente")
 						}
@@ -235,7 +235,12 @@ func analizador(cadena string) {
 						if flagP.pathY == true && flagP.nameY == true {
 							fmt.Printf("Se montara la particion: %s del disco: %s", dato.name, dato.path)
 							fmt.Println("")
-							montarParticion(dato.path, dato.name)
+							_, err := ioutil.ReadFile(dato.path)
+							if err != nil {
+								fmt.Println("Error no existe el disco")
+							} else {
+								montarParticion(dato.path, dato.name)
+							}
 						} else {
 							fmt.Println("Parametro obligatorio faltante.")
 						}

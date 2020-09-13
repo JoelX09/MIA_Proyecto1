@@ -332,69 +332,69 @@ func eliminarParticion(fd datoDisco) {
 							if tempL.PartnameL == tempcomp {
 								if strings.ToLower(fd.deleteP) == "fast" {
 									if confirmarEliminacion() == true {
-										if tempL.PartstatusL == 0 {
-											if tempL.PartstartL == valoresExt.inicioE {
-												tempL.PartstatusL = -1
-												tempL.PartfitL = 0
-												tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
-												for j := 0; j < len(tempL.PartnameL); j++ {
-													tempL.PartnameL[j] = 0
-												}
-												listaL.Remove(eleL)
-												listaL.PushFront(tempL)
-												fmt.Println("Particion eliminada correctamente")
-											} else {
-												tempLAnt := eleL.Prev()
-												valtempLAnt := tempLAnt.Value.(estructEBR)
-												valtempLAnt.PartnextL = tempL.PartnextL
-												listaL.Remove(tempLAnt)
-												listaL.InsertBefore(valtempLAnt, eleL)
-												listaL.Remove(eleL)
-												fmt.Println("Particion eliminada correctamente")
+										//if tempL.PartstatusL == 0 {
+										if tempL.PartstartL == valoresExt.inicioE {
+											tempL.PartstatusL = -1
+											tempL.PartfitL = 0
+											tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
+											for j := 0; j < len(tempL.PartnameL); j++ {
+												tempL.PartnameL[j] = 0
 											}
-											econtrado = true
-											break
-										} else if tempL.PartstatusL == 1 {
+											listaL.Remove(eleL)
+											listaL.PushFront(tempL)
+											fmt.Println("Particion eliminada correctamente")
+										} else {
+											tempLAnt := eleL.Prev()
+											valtempLAnt := tempLAnt.Value.(estructEBR)
+											valtempLAnt.PartnextL = tempL.PartnextL
+											listaL.Remove(tempLAnt)
+											listaL.InsertBefore(valtempLAnt, eleL)
+											listaL.Remove(eleL)
+											fmt.Println("Particion eliminada correctamente")
+										}
+										econtrado = true
+										break
+										/*} else if tempL.PartstatusL == 1 {
 											econtrado = true
 											fmt.Println("No se puede eliminar la particion, se encuentra montada")
 											break
-										}
+										}*/
 									} else {
 										econtrado = true
 									}
 								} else if strings.ToLower(fd.deleteP) == "full" {
 									if confirmarEliminacion() == true {
-										if tempL.PartstatusL == 0 {
-											if tempL.PartstartL == valoresExt.inicioE {
-												tempL.PartstatusL = -1
-												tempL.PartfitL = 0
-												tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
-												for j := 0; j < len(tempL.PartnameL); j++ {
-													tempL.PartnameL[j] = 0
-												}
-												var tamEBR int64
-												tamEBR = int64(unsafe.Sizeof(ebr{}))
-												deleteFull(fd.path, tempL.PartstartL+tamEBR, tempL.PartsizeL-tamEBR)
-												listaL.Remove(eleL)
-												listaL.PushFront(tempL)
-												fmt.Println("Particion eliminada correctamente")
-											} else {
-												tempLAnt := eleL.Prev()
-												valtempLAnt := tempLAnt.Value.(estructEBR)
-												valtempLAnt.PartnextL = tempL.PartnextL
-												deleteFull(fd.path, tempL.PartstartL, tempL.PartsizeL)
-												listaL.Remove(tempLAnt)
-												listaL.InsertBefore(valtempLAnt, eleL)
-												listaL.Remove(eleL)
-												fmt.Println("Particion eliminada correctamente")
+										//if tempL.PartstatusL == 0 {
+										if tempL.PartstartL == valoresExt.inicioE {
+											tempL.PartstatusL = -1
+											tempL.PartfitL = 0
+											tempL.PartsizeL = tempL.PartnextL - tempL.PartstartL
+											for j := 0; j < len(tempL.PartnameL); j++ {
+												tempL.PartnameL[j] = 0
 											}
-											econtrado = true
-											break
-										} else if tempL.PartstatusL == 1 {
+											var tamEBR int64
+											tamEBR = int64(unsafe.Sizeof(ebr{}))
+											deleteFull(fd.path, tempL.PartstartL+tamEBR, tempL.PartsizeL-tamEBR)
+											listaL.Remove(eleL)
+											listaL.PushFront(tempL)
+											fmt.Println("Particion eliminada correctamente")
+										} else {
+											tempLAnt := eleL.Prev()
+											valtempLAnt := tempLAnt.Value.(estructEBR)
+											valtempLAnt.PartnextL = tempL.PartnextL
+											deleteFull(fd.path, tempL.PartstartL, tempL.PartsizeL)
+											listaL.Remove(tempLAnt)
+											listaL.InsertBefore(valtempLAnt, eleL)
+											listaL.Remove(eleL)
+											fmt.Println("Particion eliminada correctamente")
+										}
+										econtrado = true
+										break
+										/*} else if tempL.PartstatusL == 1 {
 											econtrado = true
 											fmt.Println("No se puede eliminar la particion, se encuentra montada")
 											break
-										}
+										}*/
 									} else {
 										econtrado = true
 									}
@@ -422,42 +422,42 @@ func eliminarParticion(fd datoDisco) {
 			if econtrado == false && temp.Partname == tempcomp {
 				if strings.ToLower(fd.deleteP) == "fast" {
 					if confirmarEliminacion() == true {
-						if temp.Partstatus == 0 {
-							listaP.Remove(ele)
-							fmt.Println("Particion eliminada correctamente")
-							econtrado = true
+						//if temp.Partstatus == 0 {
+						listaP.Remove(ele)
+						fmt.Println("Particion eliminada correctamente")
+						econtrado = true
 
-							//fmt.Println("Contenido despues de eliminar una particion")
-							imprimirListaPE(fd.name, false, false, listaP)
-							actualizarMBR(fd.path, listaP)
+						//fmt.Println("Contenido despues de eliminar una particion")
+						imprimirListaPE(fd.name, false, false, listaP)
+						actualizarMBR(fd.path, listaP)
 
-							break
-						} else if temp.Partstatus == 1 {
+						break
+						/*} else if temp.Partstatus == 1 {
 							fmt.Println("No se puede eliminar la particion, se encuentra montada")
 							econtrado = true
 							break
-						}
+						}*/
 					} else {
 						econtrado = true
 					}
 				} else if strings.ToLower(fd.deleteP) == "full" {
 					if confirmarEliminacion() == true {
-						if temp.Partstatus == 0 {
-							deleteFull(fd.path, temp.Partstart, temp.Partsize)
-							listaP.Remove(ele)
-							fmt.Println("Particion eliminada correctamente")
-							econtrado = true
+						//if temp.Partstatus == 0 {
+						deleteFull(fd.path, temp.Partstart, temp.Partsize)
+						listaP.Remove(ele)
+						fmt.Println("Particion eliminada correctamente")
+						econtrado = true
 
-							//fmt.Println("Contenido despues de eliminar una particion")
-							imprimirListaPE(fd.name, false, false, listaP)
-							actualizarMBR(fd.path, listaP)
+						//fmt.Println("Contenido despues de eliminar una particion")
+						imprimirListaPE(fd.name, false, false, listaP)
+						actualizarMBR(fd.path, listaP)
 
-							break
-						} else if temp.Partstatus == 1 {
+						break
+						/*} else if temp.Partstatus == 1 {
 							econtrado = true
 							fmt.Println("No se puede eliminar la particion, se encuentra montada")
 							break
-						}
+						}*/
 					} else {
 						econtrado = true
 					}
@@ -898,7 +898,7 @@ func espaciosLL(inicioE int64, tamE int64, listaL *list.List) *list.List {
 			break
 		} else {
 			if actual.PartnextL != -1 && actual.EstadoL == 1 {
-				if actual.PartstartL+actual.PartsizeL < actual.PartstartL {
+				if actual.PartstartL+actual.PartsizeL < actual.PartnextL { // cambie actual.PartstartL por PartnextL
 					var nuevo estructEBR
 					nuevo.EstadoL = 0
 					nuevo.PartstatusL = 0

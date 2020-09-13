@@ -42,9 +42,11 @@ func eliminarVD(vd string) {
 			var discoL estructEBR
 
 			if existeNombrePE == false {
-				listaNL.Init()
-				listaL := listaInicialL(path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
-				existeNombreL, discoL = imprimirListaL(nameSt, false, true, listaL)
+				if valoresExt.inicioE != 0 {
+					listaNL.Init()
+					listaL := listaInicialL(path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+					existeNombreL, discoL = imprimirListaL(nameSt, false, true, listaL)
+				}
 			}
 
 			if existeNombrePE == true {
