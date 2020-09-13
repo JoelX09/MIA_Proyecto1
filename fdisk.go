@@ -355,9 +355,12 @@ func eliminarParticion(fd datoDisco) {
 											econtrado = true
 											break
 										} else if tempL.PartstatusL == 1 {
+											econtrado = true
 											fmt.Println("No se puede eliminar la particion, se encuentra montada")
 											break
 										}
+									} else {
+										econtrado = true
 									}
 								} else if strings.ToLower(fd.deleteP) == "full" {
 									if confirmarEliminacion() == true {
@@ -388,9 +391,12 @@ func eliminarParticion(fd datoDisco) {
 											econtrado = true
 											break
 										} else if tempL.PartstatusL == 1 {
+											econtrado = true
 											fmt.Println("No se puede eliminar la particion, se encuentra montada")
 											break
 										}
+									} else {
+										econtrado = true
 									}
 								} else {
 									fmt.Println("Valor del delete incorrecto")
@@ -428,8 +434,11 @@ func eliminarParticion(fd datoDisco) {
 							break
 						} else if temp.Partstatus == 1 {
 							fmt.Println("No se puede eliminar la particion, se encuentra montada")
+							econtrado = true
 							break
 						}
+					} else {
+						econtrado = true
 					}
 				} else if strings.ToLower(fd.deleteP) == "full" {
 					if confirmarEliminacion() == true {
@@ -445,9 +454,12 @@ func eliminarParticion(fd datoDisco) {
 
 							break
 						} else if temp.Partstatus == 1 {
+							econtrado = true
 							fmt.Println("No se puede eliminar la particion, se encuentra montada")
 							break
 						}
+					} else {
+						econtrado = true
 					}
 
 				} else {

@@ -93,7 +93,7 @@ type bitacora struct {
 	LOGnombre        [100]byte
 	LOGcontenido     [100]byte
 	LOGfecha         [19]byte
-	LOGsize          int32
+	LOGsize          int64
 }
 
 func formatearPart(vd string, tipo string, add int64, unit byte) {

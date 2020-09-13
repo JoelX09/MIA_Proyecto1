@@ -35,9 +35,11 @@ func montarParticion(path string, name string) {
 	var discoL estructEBR
 
 	if existeNombrePE == false {
-		listaNL.Init()
-		listaL := listaInicialL(path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
-		existeNombreL, discoL = imprimirListaL(name, false, true, listaL)
+		if valoresExt.inicioE != 0 {
+			listaNL.Init()
+			listaL := listaInicialL(path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+			existeNombreL, discoL = imprimirListaL(name, false, true, listaL)
+		}
 	}
 
 	if existeNombrePE == true {
@@ -115,6 +117,9 @@ func montarParticion(path string, name string) {
 
 	} else {
 		fmt.Println("NO se encontro una particion para montar con el nombre: " + name)
+	}
+	if listaP.Len() == 0 {
+		fmt.Println("No existe ninguna particion en el disco indicado")
 	}
 }
 

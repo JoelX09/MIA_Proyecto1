@@ -160,6 +160,7 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 				copy(bit.LOGcontenido[:], cont)
 				fecha := time.Now().Format("2006-01-02 15:04:05")
 				copy(bit.LOGfecha[:], fecha)
+				bit.LOGsize = size
 				var sizeBitacora int64 = int64(unsafe.Sizeof(bitacora{}))
 				insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
 			}

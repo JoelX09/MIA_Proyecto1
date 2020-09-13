@@ -312,35 +312,35 @@ func graficasb(vd string) string {
 				"\t<table border=\"1\" cellborder=\"1\" cellspacing=\"0\">\n\n" +
 				"		<tr><td><b>Nombre</b></td><td><b>Valor</b></td></tr>\n" +
 				"		<tr><td><b>sb_nombre_hd</b></td><td>" + nombrePart + "</td></tr>\n" +
-				"		<tr><td><b>sb_arbol_virtual_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBavdCount, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_detalle_directorio_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBddCount, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_inodos_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBinodosCount, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_bloques_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBbloquesCount, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_arbol_virtual_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBavdFree, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_detalle_directorio_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBddFree, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_inodos_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBinodosFree, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_bloques_free</b></td><td><b>" + strconv.FormatInt(superbloque.SBbloquesFree, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_date_creacion</b></td><td><b>" + fecha1 + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_date_ultimo_montaje</b></td><td><b>" + fecha2 + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_montajes_count</b></td><td><b>" + strconv.FormatInt(superbloque.SBmontajesCount, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_bitmap_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBAVD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapAVD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_bitmap_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBDD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBapDD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_bitmap_tabla_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBINODO, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_tabla_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBapINODO, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_bitmap_bloques</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBBLOQUE, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_bloques</b></td><td><b>" + strconv.FormatInt(superbloque.SBapBLOQUE, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_ap_log</b></td><td><b>" + strconv.FormatInt(superbloque.SBapLOG, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_size_struct_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructAVD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_size_struct_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructDD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_size_struct_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructINODO, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_size_struct_bloque</b></td><td><b>" + strconv.FormatInt(superbloque.SBsizeStructBLOQUE, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_first_free_bit_arbol_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitAVD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_first_free_bit_detalle_directorio</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitDD, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_first_free_bit_tabla_inodo</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitINODO, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_first_free_bit_bloques</b></td><td><b>" + strconv.FormatInt(superbloque.SBfirstFreeBitBLOQUE, 10) + "</b></td></tr>\n" +
-				"		<tr><td><b>sb_magic_num</b></td><td><b>" + strconv.FormatInt(superbloque.SBmagicNum, 10) + "</b></td></tr>\n" +
+				"		<tr><td><b>sb_arbol_virtual_count</b></td><td>" + strconv.FormatInt(superbloque.SBavdCount, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_detalle_directorio_count</b></td><td>" + strconv.FormatInt(superbloque.SBddCount, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_inodos_count</b></td><td>" + strconv.FormatInt(superbloque.SBinodosCount, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_bloques_count</b></td><td>" + strconv.FormatInt(superbloque.SBbloquesCount, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_arbol_virtual_free</b></td><td>" + strconv.FormatInt(superbloque.SBavdFree, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_detalle_directorio_free</b></td><td>" + strconv.FormatInt(superbloque.SBddFree, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_inodos_free</b></td><td>" + strconv.FormatInt(superbloque.SBinodosFree, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_bloques_free</b></td><td>" + strconv.FormatInt(superbloque.SBbloquesFree, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_date_creacion</b></td><td>" + fecha1 + "</td></tr>\n" +
+				"		<tr><td><b>sb_date_ultimo_montaje</b></td><td>" + fecha2 + "</td></tr>\n" +
+				"		<tr><td><b>sb_montajes_count</b></td><td>" + strconv.FormatInt(superbloque.SBmontajesCount, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_arbol_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBapBAVD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_arbol_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBapAVD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_detalle_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBapBDD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_detalle_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBapDD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_tabla_inodo</b></td><td>" + strconv.FormatInt(superbloque.SBapBINODO, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_tabla_inodo</b></td><td>" + strconv.FormatInt(superbloque.SBapINODO, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_bitmap_bloques</b></td><td>" + strconv.FormatInt(superbloque.SBapBBLOQUE, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_bloques</b></td><td>" + strconv.FormatInt(superbloque.SBapBLOQUE, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_ap_log</b></td><td>" + strconv.FormatInt(superbloque.SBapLOG, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_arbol_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBsizeStructAVD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_detalle_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBsizeStructDD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_inodo</b></td><td>" + strconv.FormatInt(superbloque.SBsizeStructINODO, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_size_struct_bloque</b></td><td>" + strconv.FormatInt(superbloque.SBsizeStructBLOQUE, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_arbol_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBfirstFreeBitAVD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_detalle_directorio</b></td><td>" + strconv.FormatInt(superbloque.SBfirstFreeBitDD, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_tabla_inodo</b></td><td>" + strconv.FormatInt(superbloque.SBfirstFreeBitINODO, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_first_free_bit_bloques</b></td><td>" + strconv.FormatInt(superbloque.SBfirstFreeBitBLOQUE, 10) + "</td></tr>\n" +
+				"		<tr><td><b>sb_magic_num</b></td><td>" + strconv.FormatInt(superbloque.SBmagicNum, 10) + "</td></tr>\n" +
 				"\t</table>>];\n" +
 				"}"
 
@@ -659,12 +659,6 @@ func separado(rutaDisco string, posC int64, iniciopart int64) string {
 
 func buscarArchivo(rutaDisco string, pos int64, nombre string) (bool, int64) {
 	nuevoDD := obtenerDD(rutaDisco, pos)
-	fmt.Println("DD")
-	fmt.Println(nuevoDD)
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
-	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-	fmt.Scanln()
 	var nombreb [20]byte
 	copy(nombreb[:], nombre)
 	var posInodo int64
@@ -1082,6 +1076,12 @@ func generarDOT(dot string, path string, nombre string) {
 		panic(err)
 	}
 	pathdot := path + nombreDot
+	//========= Cambio si da problemas quitar ===
+	if ext[1] == "txt" {
+		ext[1] = "png"
+		nombre = ext[0] + "." + ext[1]
+	}
+	//===========================================
 	pathimg := path + nombre
 
 	param := "-T" + ext[1]
@@ -1093,10 +1093,6 @@ func generarDOT(dot string, path string, nombre string) {
 func descomponer(path string) (string, string) {
 	var carpeta, archivo string
 	pathPart := strings.SplitAfter(path, "/")
-	/*partar := strings.Split(path, "/")
-	for i := 0; i < len(partar); i++ {
-		fmt.Println(partar[i])
-	}*/
 	for i := 0; i < len(pathPart)-1; i++ {
 		carpeta += pathPart[i]
 	}
