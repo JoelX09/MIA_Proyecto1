@@ -293,7 +293,7 @@ func graficasb(vd string) string {
 				}
 			}
 			if fecha1 == "" {
-				fecha1 = "Loss"
+				fecha1 = ""
 			}
 
 			fecha2 := ""
@@ -303,7 +303,7 @@ func graficasb(vd string) string {
 				}
 			}
 			if fecha2 == "" {
-				fecha2 = "Loss"
+				fecha2 = ""
 			}
 
 			dot += "digraph G {\n" +
@@ -372,7 +372,7 @@ func graficarTreeDirectorio(vd string, treeComplete bool, conInodo bool) string 
 			rutaDisco := arregloMount[idDisco2].Ruta
 			superBloque := obtenerSB(rutaDisco, inicioPart)
 
-			dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD, treeComplete, conInodo)
+			dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD, treeComplete, conInodo, inicioPart)
 
 			dot += "}"
 		} else {
@@ -428,7 +428,7 @@ func graficarTreeDirectorioUnico(vd string, treeComplete bool, conInodo bool, ru
 			}
 
 			if encontrado == true {
-				dot += nodosTreeDirectorio(rutaDisco, posEncontrado, treeComplete, conInodo)
+				dot += nodosTreeDirectorio(rutaDisco, posEncontrado, treeComplete, conInodo, inicioPart)
 			} else {
 				fmt.Println("Carpetas inexistentes en la ruta proporcionada")
 			}
@@ -468,90 +468,138 @@ func graficarTreeFile(vd string, treeComplete bool, ruta string) string {
 			path2 := strings.TrimSuffix(path1, "/")
 			pathPart := strings.Split(path2, "/")
 			//fmt.Println(nombre)
-
-			encontrado := false
-			posEncontrado := superBloque.SBapAVD
-			listaCarpetas := list.New()
-
-			type carpeta struct {
-				nombreC string
-				posC    int64
-			}
-			for i := 0; i < len(pathPart); i++ {
-				fmt.Println(pathPart[i])
-				encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
-				if encontrado == false {
-					break
-				} else {
-					nuevaCarpeta := carpeta{}
-					nuevaCarpeta.nombreC = pathPart[i]
-					nuevaCarpeta.posC = posEncontrado
-					listaCarpetas.PushBack(nuevaCarpeta)
+			raiz := false
+			if len(pathPart) == 1 {
+				if pathPart[0] == "" {
+					raiz = true
 				}
 			}
+			if raiz == false {
+				encontrado := false
+				posEncontrado := superBloque.SBapAVD
+				listaCarpetas := list.New()
 
-			if encontrado == true {
-				ultima := listaCarpetas.Back().Value.(carpeta)
-				ultimaCarpeta := obtenerAVD(rutaDisco, ultima.posC)
-
-				archivoEncontrado, archivoPos := buscarArchivo(rutaDisco, ultimaCarpeta.AVDapDetalleDir, nombre)
-
-				if archivoEncontrado == true {
-
-					arbolraiz := obtenerAVD(rutaDisco, superBloque.SBapAVD)
-					nombrest := ""
-
-					for i := 0; i < len(arbolraiz.AVDnombreDirectorio); i++ {
-						if arbolraiz.AVDnombreDirectorio[i] != 0 {
-							nombrest += string(arbolraiz.AVDnombreDirectorio[i])
-						}
+				type carpeta struct {
+					nombreC string
+					posC    int64
+				}
+				for i := 0; i < len(pathPart); i++ {
+					fmt.Println(pathPart[i])
+					encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
+					if encontrado == false {
+						break
+					} else {
+						nuevaCarpeta := carpeta{}
+						nuevaCarpeta.nombreC = pathPart[i]
+						nuevaCarpeta.posC = posEncontrado
+						listaCarpetas.PushBack(nuevaCarpeta)
 					}
-					dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " [label=\"{ " + nombrest + " |{"
+				}
 
-					for i := 0; i < 6; i++ {
-						dot += "<f" + strconv.Itoa(i) + ">|"
-					}
+				if encontrado == true {
+					ultima := listaCarpetas.Back().Value.(carpeta)
+					ultimaCarpeta := obtenerAVD(rutaDisco, ultima.posC)
 
-					dot += "<f6>|<f7>}}\"];\n\n"
+					archivoEncontrado, archivoPos := buscarArchivo(rutaDisco, ultimaCarpeta.AVDapDetalleDir, nombre)
 
-					hijoRaiz := listaCarpetas.Front().Value.(carpeta)
+					if archivoEncontrado == true {
 
-					dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " -> " + "struct" + strconv.FormatInt(hijoRaiz.posC, 10)
+						arbolraiz := obtenerAVD(rutaDisco, superBloque.SBapAVD)
+						nombrest := ""
 
-					nombrest = ""
-					for ele := listaCarpetas.Front(); ele != nil; ele = ele.Next() {
-						carpetaGrap := ele.Value.(carpeta)
-						arbol := obtenerAVD(rutaDisco, carpetaGrap.posC)
-						nombrest = ""
-
-						for i := 0; i < len(arbol.AVDnombreDirectorio); i++ {
-							if arbol.AVDnombreDirectorio[i] != 0 {
-								nombrest += string(arbol.AVDnombreDirectorio[i])
+						for i := 0; i < len(arbolraiz.AVDnombreDirectorio); i++ {
+							if arbolraiz.AVDnombreDirectorio[i] != 0 {
+								nombrest += string(arbolraiz.AVDnombreDirectorio[i])
 							}
 						}
-						dot += "\tstruct" + strconv.FormatInt(carpetaGrap.posC, 10) + " [label=\"{ " + nombrest + " |{"
-						for i := 0; i < len(arbol.AVDapArraySub); i++ {
+						/*dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " [label=\"{ " + nombrest + " |{"
+
+						for i := 0; i < 6; i++ {
 							dot += "<f" + strconv.Itoa(i) + ">|"
 						}
 
-						dot += "<f6>|<f7>}}\"];\n\n"
-
-						if ele.Next() != nil {
-							proximo := ele.Next().Value.(carpeta)
-							dot += "\tstruct" + strconv.FormatInt(carpetaGrap.posC, 10) + " -> " + "struct" + strconv.FormatInt(proximo.posC, 10)
+						dot += "<f6>|<f7>}}\"];\n\n"*/
+						dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " [label=\"{ " + nombrest + " |{"
+						for i := 0; i < len(arbolraiz.AVDapArraySub); i++ {
+							apuntadoravd := arbolraiz.AVDapArraySub[i]
+							if apuntadoravd != -1 {
+								dot += "{" + strconv.FormatInt((apuntadoravd-superBloque.SBapAVD)/superBloque.SBsizeStructAVD, 10) + "|<f" + strconv.Itoa(i) + ">}|"
+							} else {
+								dot += "{-1|<f" + strconv.Itoa(i) + ">}|"
+							}
 						}
-					}
-					padreInodo := listaCarpetas.Back().Value.(carpeta)
-					dot += "\tstructarchivo [label=\"{ " + nombre + "}\"];\n\n"
-					dot += "\tstruct" + strconv.FormatInt(padreInodo.posC, 10) + " -> structarchivo"
-					dot += "\tstructarchivo -> struct" + strconv.FormatInt(archivoPos, 10)
-					dot += graficarInodo(archivoPos, rutaDisco)
-				} else {
-					fmt.Println("El archivo no existe")
-				}
 
+						if arbolraiz.AVDapDetalleDir != -1 {
+							dot += "{" + strconv.FormatInt((arbolraiz.AVDapDetalleDir-superBloque.SBapDD)/superBloque.SBsizeStructDD, 10) + "|<f6>}|"
+						} else {
+							dot += "{-1|<f6>}|"
+						}
+
+						if arbolraiz.AVDapAVD != -1 {
+							dot += "{" + strconv.FormatInt((arbolraiz.AVDapAVD-superBloque.SBapAVD)/superBloque.SBsizeStructAVD, 10) + "|<f7>}"
+						} else {
+							dot += "{-1|<f7>}"
+						}
+						dot += "}}\"];\n\n"
+
+						hijoRaiz := listaCarpetas.Front().Value.(carpeta)
+
+						dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " -> " + "struct" + strconv.FormatInt(hijoRaiz.posC, 10)
+
+						nombrest = ""
+						for ele := listaCarpetas.Front(); ele != nil; ele = ele.Next() {
+							carpetaGrap := ele.Value.(carpeta)
+
+							dot += separado(rutaDisco, carpetaGrap.posC, inicioPart)
+
+							if ele.Next() != nil {
+								proximo := ele.Next().Value.(carpeta)
+								dot += "\tstruct" + strconv.FormatInt(carpetaGrap.posC, 10) + " -> " + "struct" + strconv.FormatInt(proximo.posC, 10)
+							}
+						}
+						padreInodo := listaCarpetas.Back().Value.(carpeta)
+						dot += "\tstructarchivo [label=\"{ " + nombre + "}\"];\n\n"
+						dot += "\tstruct" + strconv.FormatInt(padreInodo.posC, 10) + " -> structarchivo"
+						dot += "\tstructarchivo -> struct" + strconv.FormatInt(archivoPos, 10)
+						dot += graficarInodo(archivoPos, rutaDisco, inicioPart, nombre)
+					} else {
+						fmt.Println("El archivo no existe")
+					}
+
+				} else {
+					fmt.Println("Carpetas inexistentes en la ruta proporcionada")
+				}
 			} else {
-				fmt.Println("Carpetas inexistentes en la ruta proporcionada")
+				fmt.Println("Vor a graficar un archivo de la raiz")
+				fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+				fmt.Scanln()
+				fmt.Println("Padre en la pos")
+				fmt.Println(inicioPart)
+
+				fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+				fmt.Scanln()
+				raiz := obtenerAVD(rutaDisco, superBloque.SBapAVD)
+				archivoEncontrado, archivoPos := buscarArchivo(rutaDisco, raiz.AVDapDetalleDir, nombre)
+
+				if archivoEncontrado == true {
+					fmt.Println("Encontre el archivo")
+					fmt.Println(nombre)
+					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+					fmt.Scanln()
+					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+					fmt.Scanln()
+					dot += separado(rutaDisco, superBloque.SBapAVD, inicioPart)
+
+					//dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " -> " + "struct" + strconv.FormatInt(proximo.posC, 10)
+
+					//padreInodo := listaCarpetas.Back().Value.(carpeta)
+					dot += "\tstructarchivo [label=\"{ " + nombre + "}\"];\n\n"
+					dot += "\tstruct" + strconv.FormatInt(superBloque.SBapAVD, 10) + " -> structarchivo"
+					dot += "\tstructarchivo -> struct" + strconv.FormatInt(archivoPos, 10)
+					dot += graficarInodo(archivoPos, rutaDisco, inicioPart, nombre)
+				} else {
+					fmt.Println("EL archivo no existe en la raiz")
+				}
 			}
 
 			dot += "}"
@@ -565,8 +613,58 @@ func graficarTreeFile(vd string, treeComplete bool, ruta string) string {
 	return dot
 }
 
+func separado(rutaDisco string, posC int64, iniciopart int64) string {
+	dot := ""
+	superBloque := obtenerSB(rutaDisco, iniciopart)
+	arbol := obtenerAVD(rutaDisco /*carpetaGrap.*/, posC)
+	nombrest := ""
+
+	for i := 0; i < len(arbol.AVDnombreDirectorio); i++ {
+		if arbol.AVDnombreDirectorio[i] != 0 {
+			nombrest += string(arbol.AVDnombreDirectorio[i])
+		}
+	}
+	/*dot += "\tstruct" + strconv.FormatInt(carpetaGrap.posC, 10) + " [label=\"{ " + nombrest + " |{"
+	for i := 0; i < len(arbol.AVDapArraySub); i++ {
+		dot += "<f" + strconv.Itoa(i) + ">|"
+	}
+
+	dot += "<f6>|<f7>}}\"];\n\n"*/
+
+	dot += "\tstruct" + strconv.FormatInt(posC, 10) + " [label=\"{ " + nombrest + " |{"
+	for i := 0; i < len(arbol.AVDapArraySub); i++ {
+		apuntadoravd := arbol.AVDapArraySub[i]
+		if apuntadoravd != -1 {
+			dot += "{" + strconv.FormatInt((apuntadoravd-superBloque.SBapAVD)/superBloque.SBsizeStructAVD, 10) + "|<f" + strconv.Itoa(i) + ">}|"
+		} else {
+			dot += "{-1|<f" + strconv.Itoa(i) + ">}|"
+		}
+	}
+
+	if arbol.AVDapDetalleDir != -1 {
+		dot += "{" + strconv.FormatInt((arbol.AVDapDetalleDir-superBloque.SBapDD)/superBloque.SBsizeStructDD, 10) + "|<f6>}|"
+	} else {
+		dot += "{-1|<f6>}|"
+	}
+
+	if arbol.AVDapAVD != -1 {
+		dot += "{" + strconv.FormatInt((arbol.AVDapAVD-superBloque.SBapAVD)/superBloque.SBsizeStructAVD, 10) + "|<f7>}"
+	} else {
+		dot += "{-1|<f7>}"
+	}
+	dot += "}}\"];\n\n"
+
+	return dot
+}
+
 func buscarArchivo(rutaDisco string, pos int64, nombre string) (bool, int64) {
 	nuevoDD := obtenerDD(rutaDisco, pos)
+	fmt.Println("DD")
+	fmt.Println(nuevoDD)
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
 	var nombreb [20]byte
 	copy(nombreb[:], nombre)
 	var posInodo int64
@@ -588,10 +686,12 @@ func buscarArchivo(rutaDisco string, pos int64, nombre string) (bool, int64) {
 	return encontrado, posInodo
 }
 
-func nodosTreeDirectorio(rutaDisco string, pos int64, treeComplete bool, conInodo bool) string {
+func nodosTreeDirectorio(rutaDisco string, pos int64, treeComplete bool, conInodo bool, iniciopart int64) string {
 
 	arbol := obtenerAVD(rutaDisco, pos)
+	superb := obtenerSB(rutaDisco, iniciopart)
 	temparbol := avd{}
+	//var sizeAVD int64 = int64(unsafe.Sizeof(avd{}))
 	dot := ""
 	if arbol != temparbol {
 		nombre := ""
@@ -603,10 +703,27 @@ func nodosTreeDirectorio(rutaDisco string, pos int64, treeComplete bool, conInod
 		}
 		dot += "\tstruct" + strconv.FormatInt(pos, 10) + " [label=\"{ " + nombre + " |{"
 		for i := 0; i < len(arbol.AVDapArraySub); i++ {
-			dot += "<f" + strconv.Itoa(i) + ">|"
+			apuntadoravd := arbol.AVDapArraySub[i]
+			if apuntadoravd != -1 {
+				dot += "{" + strconv.FormatInt((apuntadoravd-superb.SBapAVD)/superb.SBsizeStructAVD, 10) + "|<f" + strconv.Itoa(i) + ">}|"
+			} else {
+				dot += "{-1|<f" + strconv.Itoa(i) + ">}|"
+			}
 		}
+		nombre2 := nombre
 		nombre = ""
-		dot += "<f6>|<f7>}}\"];\n\n"
+		if arbol.AVDapDetalleDir != -1 {
+			dot += "{" + strconv.FormatInt((arbol.AVDapDetalleDir-superb.SBapDD)/superb.SBsizeStructDD, 10) + "|<f6>}|"
+		} else {
+			dot += "{-1|<f6>}|"
+		}
+
+		if arbol.AVDapAVD != -1 {
+			dot += "{" + strconv.FormatInt((arbol.AVDapAVD-superb.SBapAVD)/superb.SBsizeStructAVD, 10) + "|<f7>}"
+		} else {
+			dot += "{-1|<f7>}"
+		}
+		dot += "}}\"];\n\n"
 
 		if conInodo == true {
 
@@ -632,31 +749,33 @@ func nodosTreeDirectorio(rutaDisco string, pos int64, treeComplete bool, conInod
 		if conInodo == true {
 			for i := 0; i < len(arbol.AVDapArraySub); i++ {
 				if arbol.AVDapArraySub[i] != -1 {
-					dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapArraySub[i], treeComplete, conInodo)
+					dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapArraySub[i], treeComplete, conInodo, iniciopart)
 				}
 			}
 		}
 
 		if treeComplete == true {
 			if arbol.AVDapDetalleDir != -1 {
-				dot += graficarDD(arbol.AVDapDetalleDir, rutaDisco, conInodo)
+				dot += graficarDD(arbol.AVDapDetalleDir, rutaDisco, conInodo, iniciopart, nombre2)
 			}
 		}
 
 		if arbol.AVDapAVD != -1 {
-			dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD, treeComplete, conInodo)
+			dot += nodosTreeDirectorio(rutaDisco, arbol.AVDapAVD, treeComplete, conInodo, iniciopart)
 		}
 	}
 	return dot
 }
 
-func graficarDD(posDD int64, rutaDisco string, conInodo bool) string {
+func graficarDD(posDD int64, rutaDisco string, conInodo bool, iniciopart int64, nombreDD string) string {
 	directorio := obtenerDD(rutaDisco, posDD)
-
+	super := obtenerSB(rutaDisco, iniciopart)
 	dot := ""
-	dot += "\tstruct" + strconv.FormatInt(posDD, 10) + " [label=\"{"
+
+	dot += "\n\tstruct" + strconv.FormatInt(posDD, 10) + " [label=\"{ DD " + nombreDD + "|{"
+	dot += "{"
+
 	for i := 0; i < 5; i++ {
-		dot += "<f" + strconv.Itoa(i) + "> "
 		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
 			nombre := ""
 			for j := 0; j < len(directorio.DDarrayFiles[i].DDfileNombre); j++ {
@@ -664,13 +783,38 @@ func graficarDD(posDD int64, rutaDisco string, conInodo bool) string {
 					nombre += string(directorio.DDarrayFiles[i].DDfileNombre[j])
 				}
 			}
+
 			dot += nombre + " |"
 		} else {
 			dot += " |"
 		}
-
 	}
-	dot += "<f5> Indi }\"];\n\n"
+	dot += "*}|"
+
+	dot += "{"
+	for i := 0; i < 5; i++ {
+		if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
+
+			dot += strconv.FormatInt((directorio.DDarrayFiles[i].DDfileApInodo-super.SBapINODO)/super.SBsizeStructINODO, 10) + " |"
+		} else {
+			dot += " -1|"
+		}
+	}
+	if directorio.DDapDD != -1 {
+		dot += strconv.FormatInt((directorio.DDapDD-super.SBapDD)/super.SBsizeStructDD, 10) + "}|"
+	} else {
+		dot += "-1}|"
+	}
+
+	dot += "{"
+	for i := 0; i < 6; i++ {
+		dot += "<f" + strconv.Itoa(i) + ">"
+		if i < 5 {
+			dot += "|"
+		}
+	}
+	dot += "}"
+	dot += "}}\"];\n\n"
 
 	if conInodo == true {
 		for i := 0; i < 5; i++ {
@@ -687,31 +831,61 @@ func graficarDD(posDD int64, rutaDisco string, conInodo bool) string {
 	if conInodo == true {
 		for i := 0; i < 5; i++ {
 			if directorio.DDarrayFiles[i].DDfileApInodo != -1 {
-				dot += graficarInodo(directorio.DDarrayFiles[i].DDfileApInodo, rutaDisco)
+				nombreino := ""
+				for j := 0; j < len(directorio.DDarrayFiles[i].DDfileNombre); j++ {
+					if directorio.DDarrayFiles[i].DDfileNombre[j] != 0 {
+						nombreino += string(directorio.DDarrayFiles[i].DDfileNombre[j])
+					}
+				}
+				dot += graficarInodo(directorio.DDarrayFiles[i].DDfileApInodo, rutaDisco, iniciopart, nombreino)
 			}
 		}
 	}
 
 	if directorio.DDapDD != -1 {
-		dot += graficarDD(directorio.DDapDD, rutaDisco, conInodo)
+		dot += graficarDD(directorio.DDapDD, rutaDisco, conInodo, iniciopart, nombreDD)
 	}
 
 	return dot
 }
 
-func graficarInodo(posInodo int64, rutaDisco string) string {
+func graficarInodo(posInodo int64, rutaDisco string, inicioPart int64, nombre string) string {
 
 	nuevoInodo := obtenerINODO(rutaDisco, posInodo)
+	super := obtenerSB(rutaDisco, inicioPart)
 	dot := ""
-	dot += "\n\tstruct" + strconv.FormatInt(posInodo, 10) + " [label=\"{" +
-		"<fo> " + strconv.FormatInt(nuevoInodo.IcountInodo, 10) + " |" +
-		"<f1> " + strconv.FormatInt(nuevoInodo.IsizeArchivo, 10) + " |" +
-		"<f2> " + strconv.FormatInt(nuevoInodo.IcountBloquesAsignados, 10) + " |" +
-		"<f3> B1 |" +
-		"<f4> B2 |" +
-		"<f5> B3 |" +
-		"<f6> B4 |" +
-		"<f7> Inodo indirecto}\"];\n"
+
+	dot += "\n\tstruct" + strconv.FormatInt(posInodo, 10) + " [label=\"{ Inodod " + nombre + "|{" +
+		"{" + strconv.FormatInt(nuevoInodo.IcountInodo, 10) + "|" +
+		strconv.FormatInt(nuevoInodo.IsizeArchivo, 10) + "|" +
+		strconv.FormatInt(nuevoInodo.IcountBloquesAsignados, 10) + "|"
+	for i := 0; i < 4; i++ {
+		if nuevoInodo.IarrayBloques[i] != -1 {
+			dot += strconv.FormatInt((nuevoInodo.IarrayBloques[i]-super.SBapBLOQUE)/super.SBsizeStructBLOQUE, 10) + " |"
+		} else {
+			dot += "-1|"
+		}
+	}
+	if nuevoInodo.IapIndirecto != -1 {
+		dot += "*" + strconv.FormatInt((nuevoInodo.IapIndirecto-super.SBapINODO)/super.SBsizeStructINODO, 10) + "}|"
+	} else {
+		dot += "*-1}|"
+	}
+
+	dot += "{ <f0>|" +
+		" <f1>|" +
+		" <f2>|"
+	for i := 0; i < 4; i++ {
+		if nuevoInodo.IarrayBloques[i] != -1 {
+			dot += "<f" + strconv.Itoa(i+3) + ">|"
+		} else {
+			dot += "<f" + strconv.Itoa(i+3) + ">|"
+		}
+	}
+
+	dot += "<f7>}"
+
+	dot += "}}\"];\n\n"
 
 	for i := 0; i < len(nuevoInodo.IarrayBloques); i++ {
 		if nuevoInodo.IarrayBloques[i] != -1 {
@@ -735,7 +909,7 @@ func graficarInodo(posInodo int64, rutaDisco string) string {
 	}
 
 	if nuevoInodo.IapIndirecto != -1 {
-		dot += graficarInodo(nuevoInodo.IapIndirecto, rutaDisco)
+		dot += graficarInodo(nuevoInodo.IapIndirecto, rutaDisco, inicioPart, nombre)
 	}
 
 	return dot

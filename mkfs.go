@@ -441,7 +441,7 @@ func escribirStructInicial(path string, superbloque sb) {
 func obtenerSB(path string, pos int64) sb {
 	//fallo := false
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		//fallo = true
 		panic(err)
@@ -462,13 +462,14 @@ func obtenerSB(path string, pos int64) sb {
 	}
 
 	//fmt.Println(m)
+	file.Close()
 	return s //, fallo
 }
 
 func obtenerAVD(path string, pos int64) avd {
 	//fallo := false
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		//fallo = true
 		panic(err)
@@ -489,13 +490,14 @@ func obtenerAVD(path string, pos int64) avd {
 	}
 
 	//fmt.Println(m)
+	file.Close()
 	return s //, fallo
 }
 
 func obtenerDD(path string, pos int64) dd {
 	//fallo := false
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		//fallo = true
 		panic(err)
@@ -516,13 +518,14 @@ func obtenerDD(path string, pos int64) dd {
 	}
 
 	//fmt.Println(m)
+	file.Close()
 	return s //, fallo
 }
 
 func obtenerINODO(path string, pos int64) inodo {
 	//fallo := false
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		//fallo = true
 		panic(err)
@@ -543,13 +546,14 @@ func obtenerINODO(path string, pos int64) inodo {
 	}
 
 	//fmt.Println(m)
+	file.Close()
 	return s //, fallo
 }
 
 func obtenerBLOQUE(path string, pos int64) bloque {
 	//fallo := false
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		//fallo = true
 		panic(err)
@@ -570,13 +574,14 @@ func obtenerBLOQUE(path string, pos int64) bloque {
 	}
 
 	//fmt.Println(m)
+	file.Close()
 	return s //, fallo
 }
 
 func obtenerbitacora(path string, pos int64) bitacora {
 	//fallo := false
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		//fallo = true
 		panic(err)
@@ -597,5 +602,6 @@ func obtenerbitacora(path string, pos int64) bitacora {
 	}
 
 	//fmt.Println(m)
+	file.Close()
 	return s //, fallo
 }

@@ -12,7 +12,7 @@ import (
 func obtenerMbr(path string) mbr {
 	//fallo := false
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		//fallo = true
 		panic(err)
@@ -32,6 +32,7 @@ func obtenerMbr(path string) mbr {
 	}
 
 	//fmt.Println(m)
+	file.Close()
 	return m //, fallo
 }
 
@@ -48,7 +49,7 @@ func obtenerBytes(file *os.File, number int) []byte {
 
 func escribirMbr(path string, m mbr) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,6 +65,7 @@ func escribirMbr(path string, m mbr) {
 		fmt.Println("4- binary error ", err1)
 	}
 	escribirBytesMBR(file, binario2.Bytes())
+	file.Close()
 }
 
 func escribirBytesMBR(file *os.File, bytes []byte) {

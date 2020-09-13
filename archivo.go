@@ -65,10 +65,10 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 				}
 
 				if encontrado == true {
-					fmt.Println("******************************************************")
+					/*fmt.Println("******************************************************")
 					fmt.Println("Todas las carpetas existen")
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()
+					fmt.Scanln()*/
 					//fmt.Println(posEncontrado)
 
 					raiz := obtenerAVD(rutaDisco, posEncontrado)
@@ -95,7 +95,6 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 					copy(nuevoArreglogArchivo.DDfileDateCreacion[:], fecha)
 					fecha = time.Now().Format("2006-01-02 15:04:05")
 					copy(nuevoArreglogArchivo.DDfileDateModificacion[:], fecha)
-					fmt.Println("Pos arreglo y si esta libre")
 
 					for i := 0; i < 5; i++ {
 						if nuevoDD.DDarrayFiles[i].DDfileApInodo == -1 {
@@ -127,7 +126,7 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 					escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 					superBloque = obtenerSB(rutaDisco, inicioPart)
 
-					llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true)
+					llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true, size)
 
 				} else {
 					var posUltimaCarpeta int64
@@ -217,31 +216,49 @@ func verficarNuevoDD(rutaDisco string, posDD int64, pos int64) (dd, int64) {
 	return nuevoDD, posDD
 }
 
-func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloque sb, inicioPart int64, existeContenido bool) {
+func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloque sb, inicioPart int64, existeContenido bool, size int64) {
 	contB := []byte(cont)
-	termino := false
+	//tamContenido := len(contB)
+	/*fmt.Println("Size recibido")
+	fmt.Println(size)
+	fmt.Println("**************************************")
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()*/
+	cantidadBloques := int(size) / 25
+	cantidadBloqueD := int(size) % 25
+	if cantidadBloqueD != 0 {
+		cantidadBloques++
+	}
+	/*fmt.Println("Cantidad de bloque a llenar")
+	fmt.Println(cantidadBloques)
+	fmt.Println("**************************************")
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()*/
+	//termino := false
 	//****************************** AQUI PTM**************
 	//nuevoInodo, _ := verficarNuevoI(rutaDisco, posInodo, inicioPart)
 	nuevoInodo := obtenerINODO(rutaDisco, posInodo)
-
+	//for a := 0; a < cantidadBloques; a++ {
 	pos := 0
 	for i := 0; i < 4; i++ {
 		var letra byte = 'A'
 		nuevoBloque := bloque{}
 		for j := 0; j < 25; j++ {
-			if j < len(contB) {
-				nuevoBloque.DBdata[j] = contB[j]
+			if existeContenido == true {
+				if j < len(contB) {
+					nuevoBloque.DBdata[j] = contB[j]
+				} else {
+					existeContenido = false
+					//termino = true
+					nuevoBloque.DBdata[j] = letra
+					letra++
+				}
 			} else {
-				termino = true
 				nuevoBloque.DBdata[j] = letra
 				letra++
 			}
-		}
-
-		if termino == true {
 
 		}
-
 		posNuevoBloque := superBloque.SBapBLOQUE + superBloque.SBfirstFreeBitBLOQUE*superBloque.SBsizeStructBLOQUE
 
 		escribirStructBLOQUE(rutaDisco, posNuevoBloque, nuevoBloque)
@@ -257,24 +274,29 @@ func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloq
 		superBloque = obtenerSB(rutaDisco, inicioPart)
 
 		nuevoInodo.IarrayBloques[i] = posNuevoBloque
-
+		cantidadBloques--
+		size -= 25
 		pos = i
-		if termino == true {
+		//if termino == true {
+		if cantidadBloques == 0 {
+			nuevoInodo.IcountBloquesAsignados = int64(i + 1)
 			escribirStructINODO(rutaDisco, posInodo, nuevoInodo)
 			superBloque = obtenerSB(rutaDisco, inicioPart)
 			break
-		} else if len(contB) == 25 {
+			/*} else if len(contB) == 25 {
 			termino = true
 			escribirStructINODO(rutaDisco, posInodo, nuevoInodo)
 			superBloque = obtenerSB(rutaDisco, inicioPart)
-			break
+			break*/
 		} else {
-			contB = contB[25:]
+			if existeContenido == true {
+				contB = contB[25:]
+			}
 		}
 
 	}
 
-	if termino == false {
+	if cantidadBloques > 0 {
 		if pos == 3 {
 			nuevoInodoIndirecto := inodo{}
 			posNuevoInodoIndirecto := superBloque.SBapINODO + superBloque.SBfirstFreeBitINODO*superBloque.SBsizeStructINODO
@@ -295,7 +317,7 @@ func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloq
 			}
 
 			nuevoInodo.IapIndirecto = posNuevoInodoIndirecto
-
+			nuevoInodo.IcountBloquesAsignados = 4
 			escribirStructINODO(rutaDisco, posInodo, nuevoInodo)
 
 			escribirStructINODO(rutaDisco, posNuevoInodoIndirecto, nuevoInodoIndirecto)
@@ -306,13 +328,16 @@ func llenarNuevoArchivo(cont string, posInodo int64, rutaDisco string, superBloq
 			superBloque = obtenerSB(rutaDisco, inicioPart)
 
 			contres := ""
-			for i := 0; i < len(contB); i++ {
-				contres += string(contB[i])
+			if existeContenido == true {
+				for i := 0; i < len(contB); i++ {
+					contres += string(contB[i])
+				}
 			}
 
-			llenarNuevoArchivo(contres, posNuevoInodoIndirecto, rutaDisco, superBloque, inicioPart, true)
+			llenarNuevoArchivo(contres, posNuevoInodoIndirecto, rutaDisco, superBloque, inicioPart, existeContenido, size)
 		}
 	}
+	//}
 }
 
 func codigoRepetido(rutaDisco string, posUltimaCarpeta int64, cont string, size int64, inicioPart int64, nombreArchivo string) {
@@ -368,14 +393,14 @@ func codigoRepetido(rutaDisco string, posUltimaCarpeta int64, cont string, size 
 	escribirSuperBloque(rutaDisco, posCopiaSB, superBloque)
 	superBloque = obtenerSB(rutaDisco, inicioPart)
 
-	llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true)
+	llenarNuevoArchivo(cont, posNuevoInodo, rutaDisco, superBloque, inicioPart, true, size)
 
 }
 
 func obtenerBitmap(path string, inicio int64, tam int64) []byte {
 
 	f, err := os.Open(path)
-	defer f.Close()
+	//defer f.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -390,6 +415,6 @@ func obtenerBitmap(path string, inicio int64, tam int64) []byte {
 	if err != nil {
 		log.Fatal("bitmap.Read failed", err)
 	}
-
+	f.Close()
 	return temptam
 }

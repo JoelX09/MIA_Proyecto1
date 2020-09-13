@@ -28,7 +28,7 @@ func crearDisco(size int64, path string, name string, unit byte) {
 		if size > 0 {
 			if unit == 0 || (unit == 'm' || unit == 'M') || (unit == 'k' || unit == 'K') {
 				f, err := os.Create(path + name)
-				defer f.Close()
+				//defer f.Close()
 				if err != nil {
 					panic(err)
 				}
@@ -83,6 +83,7 @@ func crearDisco(size int64, path string, name string, unit byte) {
 					fmt.Println("4- binary error ", err1)
 				}
 				escribirBytes(f, binario2.Bytes())
+				f.Close()
 			} else {
 				fmt.Println("Error en el tipo de unidad de tamano de disco")
 			}

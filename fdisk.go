@@ -6,10 +6,8 @@ import (
 	"container/list"
 	"encoding/binary"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 	"unsafe"
 )
@@ -662,37 +660,6 @@ func adminParticion(fd datoDisco, fl banderaParam) {
 	}
 }
 
-func crearDot() {
-	contenido := "digraph g{\n" +
-		"15->7->-3\n" +
-		"15->22->17\n" +
-		"7->10\n" +
-		"10->8\n" +
-		"22->35\n" +
-		"}"
-
-	f, err := os.Create("/home/joel/Escritorio/Prueba.dot")
-	if err != nil {
-		panic(err)
-	}
-	f.Close()
-
-	err = ioutil.WriteFile("/home/joel/Escritorio/Prueba.dot", []byte(contenido), 0777)
-	if err != nil {
-		panic(err)
-	}
-
-	cmd := exec.Command("dot", "-Tpng", "/home/joel/Escritorio/Prueba.dot", "-o", "/home/joel/Escritorio/Prueba.png")
-	cmd.Run()
-	//log.Printf("Command finished with error: %v", erro)
-
-	/*
-		cmd := exec.Command("comando)
-			cmd.Stdout = os.Stdout
-			cmd.Run()
-	*/
-}
-
 func imprimirListaPE(name string, imprimir bool, buscarNombre bool, listaP *list.List) (bool, valExt, nodoPart) {
 	var valoresExt valExt
 	var nodoReturn nodoPart
@@ -823,7 +790,7 @@ func validarValorAdd(unit byte, add int64) (bool, int64) {
 
 func deleteFull(path string, inicio int64, tam int64) {
 	f, err := os.OpenFile(path, os.O_RDWR, 0777)
-	defer f.Close()
+	//defer f.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -839,6 +806,7 @@ func deleteFull(path string, inicio int64, tam int64) {
 		fmt.Println("binary error ", err4)
 	}
 	escribirBytesDelete(f, binario.Bytes())
+	f.Close()
 }
 
 func escribirBytesDelete(file *os.File, bytes []byte) {

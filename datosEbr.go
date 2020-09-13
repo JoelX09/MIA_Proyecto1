@@ -11,7 +11,7 @@ import (
 
 func obtenerEbr(path string, pos int64) ebr {
 	file, err := os.Open(path)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,6 +31,7 @@ func obtenerEbr(path string, pos int64) ebr {
 	}
 
 	//fmt.Println(e)
+	file.Close()
 	return e
 }
 
@@ -47,7 +48,7 @@ func obtenerBytesEbr(file *os.File, number int) []byte {
 
 func escribirEbr(path string, e ebr, pos int64) {
 	file, err := os.OpenFile(path, os.O_RDWR, 0777)
-	defer file.Close()
+	//defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,6 +64,7 @@ func escribirEbr(path string, e ebr, pos int64) {
 		fmt.Println("4- binary error ", err1)
 	}
 	escribirBytesEBR(file, binario2.Bytes())
+	file.Close()
 }
 
 func escribirBytesEBR(file *os.File, bytes []byte) {
