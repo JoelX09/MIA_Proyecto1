@@ -133,6 +133,8 @@ func pedirComando() string {
 	}
 }
 
+var incorrecto bool
+
 func analizador(cadena string) {
 	listado := strings.Split(cadena, "\n")
 
@@ -176,124 +178,130 @@ func analizador(cadena string) {
 					fmt.Println("Contenido: " + parametro)
 					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", "", ""}
 					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false, false}
-					/*dato = */ analizadorParametros(parametro, i+1)
+					incorrecto = false
+					analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
 				}
 
-				switch tipo {
-				case "pause":
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()
+				if incorrecto == false {
+					switch tipo {
+					case "pause":
+						fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+						fmt.Scanln()
 
-				case "exec":
-					archivo, err := ioutil.ReadFile(dato.path)
-					if err != nil {
-						fmt.Printf("Error leyendo archivo: %v\n", err)
-					}
-					contenido := string(archivo)
-					analizador(contenido)
-
-				case "mkdisk":
-					fmt.Println("Ruta para crear el disco: " + dato.path)
-					if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
-						fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
-						fmt.Println("")
-						crearDisco(dato.size, dato.path, dato.name, dato.unit)
-					} else {
-						fmt.Println("Parametro obligatorio faltante.")
-					}
-
-				case "rmdisk":
-					fmt.Println("Desea remover el diso: " + dato.path + " [y/n]")
-					reader := bufio.NewReader(os.Stdin)
-					lectura, _ := reader.ReadString('\n')
-					eleccion := strings.TrimRight(lectura, "\n")
-					if eleccion == "y" {
-						err := os.Remove(dato.path)
+					case "exec":
+						archivo, err := ioutil.ReadFile(dato.path)
 						if err != nil {
-							fmt.Println("Error eliminando archivo: No se encontro el archivo" /*%v\n", err*/)
-						} else {
-							fmt.Println("Eliminado correctamente")
+							fmt.Printf("Error leyendo archivo: %v\n", err)
 						}
-					} else if eleccion == "n" {
-						fmt.Println("No se eliminara el archivo")
-					} else {
-						fmt.Println("Confirmacion invalida.")
-					}
+						contenido := string(archivo)
+						analizador(contenido)
 
-				case "fdisk":
-					if /*flagP.sizeY == true &&*/ flagP.pathY == true && flagP.nameY == true {
-						fmt.Printf("Se creara la particion en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
-						fmt.Println("")
-						adminParticion(dato, flagP)
-					} else {
-						fmt.Println("Parametro obligatorio faltante.")
-					}
-
-				case "mount":
-					if comandoUnico == false {
-						if flagP.pathY == true && flagP.nameY == true {
-							fmt.Printf("Se montara la particion: %s del disco: %s", dato.name, dato.path)
+					case "mkdisk":
+						fmt.Println("Ruta para crear el disco: " + dato.path)
+						if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
+							fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
 							fmt.Println("")
+							crearDisco(dato.size, dato.path, dato.name, dato.unit)
+						} else {
+							fmt.Println("Parametro obligatorio faltante.")
+						}
+
+					case "rmdisk":
+						fmt.Println("Desea remover el diso: " + dato.path + " [y/n]")
+						reader := bufio.NewReader(os.Stdin)
+						lectura, _ := reader.ReadString('\n')
+						eleccion := strings.TrimRight(lectura, "\n")
+						if eleccion == "y" {
+							err := os.Remove(dato.path)
+							if err != nil {
+								fmt.Println("Error eliminando archivo: No se encontro el archivo" /*%v\n", err*/)
+							} else {
+								fmt.Println("Eliminado correctamente")
+							}
+						} else if eleccion == "n" {
+							fmt.Println("No se eliminara el archivo")
+						} else {
+							fmt.Println("Confirmacion invalida.")
+						}
+
+					case "fdisk":
+						if flagP.pathY == true && flagP.nameY == true {
 							_, err := ioutil.ReadFile(dato.path)
 							if err != nil {
-								fmt.Println("Error no existe el disco")
+								fmt.Println("Error: No existe el archivo del disco")
 							} else {
-								montarParticion(dato.path, dato.name)
+								adminParticion(dato, flagP)
 							}
 						} else {
 							fmt.Println("Parametro obligatorio faltante.")
 						}
-					} else {
-						listaMontadas()
-					}
 
-				case "unmount":
-					if flagP.idY == true {
-						desmontar()
-					} else {
-						fmt.Println("Error en el unmount")
-					}
-				case "rep":
-					if flagP.nombreY == true && flagP.pathY == true && flagP.idY == true {
-						graficar(dato.path, dato.nombre, dato.idn, dato.ruta)
-					} else {
-						fmt.Println("Parametro obligatorio faltante")
-					}
+					case "mount":
+						if comandoUnico == false {
+							if flagP.pathY == true && flagP.nameY == true {
+								fmt.Printf("Se montara la particion: %s del disco: %s", dato.name, dato.path)
+								fmt.Println("")
+								_, err := ioutil.ReadFile(dato.path)
+								if err != nil {
+									fmt.Println("Error no existe el disco")
+								} else {
+									montarParticion(dato.path, dato.name)
+								}
+							} else {
+								fmt.Println("Parametro obligatorio faltante.")
+							}
+						} else {
+							listaMontadas()
+						}
 
-				case "mkfs":
-					if flagP.idY == true {
-						formatearPart(dato.idn, dato.typeFS, dato.add, dato.unit)
-					} else {
-						fmt.Println("Parametro obligatorio faltante")
-					}
-				case "mkdir":
-					if flagP.idY == true && flagP.pathY == true {
-						crearCarpeta(dato.idn, dato.path, flagP.guionP, true)
-					} else {
-						fmt.Println("Parametro obligatorio faltante")
-					}
-				case "mkfile":
-					if flagP.idY == true && flagP.pathY == true {
-						crearArvhi(dato.idn, dato.path, flagP.guionP, dato.size, dato.cont, true)
-					} else {
-						fmt.Println("Parametro obligatorio faltante")
-					}
-				case "loss":
-					if flagP.idY == true {
-						loss(dato.idn)
-					} else {
-						fmt.Println("Parametro obligatorio faltante")
-					}
-				case "recovery":
-					if flagP.idY == true {
-						recorery(dato.idn)
-					} else {
-						fmt.Println("Parametro obligatorio faltante")
-					}
-				default:
-					fmt.Println("El comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1))
+					case "unmount":
+						if flagP.idY == true {
+							desmontar()
+						} else {
+							fmt.Println("Error en el unmount")
+						}
+					case "rep":
+						if flagP.nombreY == true && flagP.pathY == true && flagP.idY == true {
+							graficar(dato.path, dato.nombre, dato.idn, dato.ruta)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
 
+					case "mkfs":
+						if flagP.idY == true {
+							formatearPart(dato.idn, dato.typeFS, dato.add, dato.unit)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
+					case "mkdir":
+						if flagP.idY == true && flagP.pathY == true {
+							crearCarpeta(dato.idn, dato.path, flagP.guionP, true)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
+					case "mkfile":
+						if flagP.idY == true && flagP.pathY == true {
+							crearArvhi(dato.idn, dato.path, flagP.guionP, dato.size, dato.cont, true)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
+					case "loss":
+						if flagP.idY == true {
+							loss(dato.idn)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
+					case "recovery":
+						if flagP.idY == true {
+							recorery(dato.idn)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
+					default:
+						fmt.Println("El comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1))
+
+					}
 				}
 			}
 			fmt.Println("Presione enter para continuar")
@@ -439,6 +447,7 @@ func almacenarValor(parametro string, contParam string, linea int) {
 	case "cont":
 		dato.cont = contParam
 	default:
+		incorrecto = true
 		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))
 	}
 }

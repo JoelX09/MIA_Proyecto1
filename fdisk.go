@@ -86,116 +86,120 @@ func crearParticion(fd datoDisco) {
 	existeNombrePE, valoresExt, _ := imprimirListaPE(fd.name, false, true, listaP)
 
 	if fd.typeP == 'L' {
-		if numPart[1] == 1 {
+		if existeNombrePE == false {
+			if numPart[1] == 1 {
 
-			fmt.Println("----------\nSe va a crear una Logica\n----------")
+				fmt.Println("----------\nSe va a crear una Logica\n----------")
 
-			unidad, tipoFit, tam, fit := validarValores(fd.unit, fd.size, fd.fit)
-			fd.fit = fit
+				unidad, tipoFit, tam, fit := validarValores(fd.unit, fd.size, fd.fit)
+				fd.fit = fit
 
-			listaNL.Init()
-			listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
+				listaNL.Init()
+				listaL := listaInicialL(fd.path, valoresExt.inicioE, valoresExt.tamE, valoresExt.inicioE)
 
-			//fmt.Println("Lista con los ebr que existen")
-			imprimirListaL(fd.name, false, false, listaL)
-			var listaLtemp = list.New()
-			listaLtemp.PushFrontList(listaL)
-			listaL.Init()
-			listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
-			//fmt.Println("Lista con los ebr y espacios disponibles")
-			existeNombreL, _ := imprimirListaL(fd.name, false, true, listaL)
+				//fmt.Println("Lista con los ebr que existen")
+				imprimirListaL(fd.name, false, false, listaL)
+				var listaLtemp = list.New()
+				listaLtemp.PushFrontList(listaL)
+				listaL.Init()
+				listaL = espaciosLL(valoresExt.inicioE, valoresExt.tamE, listaLtemp)
+				//fmt.Println("Lista con los ebr y espacios disponibles")
+				existeNombreL, _ := imprimirListaL(fd.name, false, true, listaL)
 
-			if existeNombreL == false {
-				if unidad == true && tipoFit == true && fd.size > 0 {
-					if listaL.Len() == 1 {
-						datos := listaL.Front().Value.(estructEBR)
-						if datos.EstadoL == 0 {
-							if datos.PartsizeL >= tam {
-								datos.EstadoL = 1
-								datos.PartstatusL = 0
-								datos.PartfitL = fd.fit[0]
-								datos.PartsizeL = tam
-								datos.PartnextL = -1
-								copy(datos.PartnameL[:], fd.name)
-								listaL.Remove(listaL.Front())
-								listaL.PushFront(datos)
+				if existeNombreL == false {
+					if unidad == true && tipoFit == true && fd.size > 0 {
+						if listaL.Len() == 1 {
+							datos := listaL.Front().Value.(estructEBR)
+							if datos.EstadoL == 0 {
+								if datos.PartsizeL >= tam {
+									datos.EstadoL = 1
+									datos.PartstatusL = 0
+									datos.PartfitL = fd.fit[0]
+									datos.PartsizeL = tam
+									datos.PartnextL = -1
+									copy(datos.PartnameL[:], fd.name)
+									listaL.Remove(listaL.Front())
+									listaL.PushFront(datos)
+								}
 							}
-						}
-					} else if listaL.Len() == 2 {
-						actual := listaL.Front()
-						datosActual := actual.Value.(estructEBR)
-						siguiente := listaL.Back()
-						datosSiguiente := siguiente.Value.(estructEBR)
+						} else if listaL.Len() == 2 {
+							actual := listaL.Front()
+							datosActual := actual.Value.(estructEBR)
+							siguiente := listaL.Back()
+							datosSiguiente := siguiente.Value.(estructEBR)
 
-						if datosSiguiente.EstadoL == 0 {
-							if datosSiguiente.PartsizeL >= tam {
-								datosSiguiente.EstadoL = 1
-								datosSiguiente.PartstatusL = 0
-								datosSiguiente.PartfitL = fd.fit[0]
-								datosSiguiente.PartsizeL = tam
-								datosSiguiente.PartnextL = -1
-								copy(datosSiguiente.PartnameL[:], fd.name)
+							if datosSiguiente.EstadoL == 0 {
+								if datosSiguiente.PartsizeL >= tam {
+									datosSiguiente.EstadoL = 1
+									datosSiguiente.PartstatusL = 0
+									datosSiguiente.PartfitL = fd.fit[0]
+									datosSiguiente.PartsizeL = tam
+									datosSiguiente.PartnextL = -1
+									copy(datosSiguiente.PartnameL[:], fd.name)
 
-								datosActual.PartnextL = datosSiguiente.PartstartL
+									datosActual.PartnextL = datosSiguiente.PartstartL
 
-								listaL.Remove(actual)
-								listaL.PushFront(datosActual)
-								listaL.Remove(siguiente)
-								listaL.PushBack(datosSiguiente)
+									listaL.Remove(actual)
+									listaL.PushFront(datosActual)
+									listaL.Remove(siguiente)
+									listaL.PushBack(datosSiguiente)
+								}
 							}
-						}
-					} else {
-						for ele := listaL.Front(); ele != nil; ele = ele.Next() {
-							actual := ele.Value.(estructEBR)
-							if actual.EstadoL == 0 {
-								if actual.PartsizeL >= tam {
-									if actual.PartstartL == valoresExt.inicioE {
-										actual.EstadoL = 1
-										actual.PartstatusL = 0
-										actual.PartfitL = fd.fit[0]
-										actual.PartsizeL = tam
-										copy(actual.PartnameL[:], fd.name)
+						} else {
+							for ele := listaL.Front(); ele != nil; ele = ele.Next() {
+								actual := ele.Value.(estructEBR)
+								if actual.EstadoL == 0 {
+									if actual.PartsizeL >= tam {
+										if actual.PartstartL == valoresExt.inicioE {
+											actual.EstadoL = 1
+											actual.PartstatusL = 0
+											actual.PartfitL = fd.fit[0]
+											actual.PartsizeL = tam
+											copy(actual.PartnameL[:], fd.name)
 
-										listaL.Remove(ele)
-										listaL.PushFront(actual)
-										break
-									} else {
-										actual.EstadoL = 1
-										actual.PartstatusL = 0
-										actual.PartfitL = fd.fit[0]
-										actual.PartsizeL = tam
-										copy(actual.PartnameL[:], fd.name)
+											listaL.Remove(ele)
+											listaL.PushFront(actual)
+											break
+										} else {
+											actual.EstadoL = 1
+											actual.PartstatusL = 0
+											actual.PartfitL = fd.fit[0]
+											actual.PartsizeL = tam
+											copy(actual.PartnameL[:], fd.name)
 
-										anterior := ele.Prev()
-										datosAnterior := anterior.Value.(estructEBR)
-										datosAnterior.PartnextL = actual.PartstartL
+											anterior := ele.Prev()
+											datosAnterior := anterior.Value.(estructEBR)
+											datosAnterior.PartnextL = actual.PartstartL
 
-										listaL.Remove(anterior)
-										apuntadorTemp := listaL.InsertBefore(datosAnterior, ele)
+											listaL.Remove(anterior)
+											apuntadorTemp := listaL.InsertBefore(datosAnterior, ele)
 
-										listaL.Remove(ele)
-										listaL.InsertAfter(actual, apuntadorTemp)
-										break
+											listaL.Remove(ele)
+											listaL.InsertAfter(actual, apuntadorTemp)
+											break
+										}
 									}
 								}
 							}
 						}
-					}
-					//fmt.Println("Contenido despues de insertar una particion Logica")
-					imprimirListaL(fd.name, false, false, listaL)
-					//fmt.Println("------------------------------------------------")
-					//fmt.Println("Escribiendo EBR's")
-					//fmt.Println("------------------------------------------------")
-					escribirListaEbr(fd.path, listaL)
+						//fmt.Println("Contenido despues de insertar una particion Logica")
+						imprimirListaL(fd.name, false, false, listaL)
+						//fmt.Println("------------------------------------------------")
+						//fmt.Println("Escribiendo EBR's")
+						//fmt.Println("------------------------------------------------")
+						escribirListaEbr(fd.path, listaL)
 
+					}
+
+				} else {
+					fmt.Println("NO se puede crear la particion logica, ya existe una con ese nombre")
 				}
 
 			} else {
-				fmt.Println("NO se puede crear la particion logica, ya existe una con ese nombre")
+				fmt.Println("----------\nNo existe una particion extendida para crear logicas\n----------")
 			}
-
 		} else {
-			fmt.Println("----------\nNo existe una particion extendida para crear logicas\n----------")
+			fmt.Println("Ya existe una particion no Logica con este nombre")
 		}
 
 	} else if existeNombrePE == false && fd.typeP != 'L' {
@@ -661,13 +665,16 @@ func actualizarMBR(path string, listaP *list.List) {
 func adminParticion(fd datoDisco, fl banderaParam) {
 
 	if fl.deleteY == false && fl.addY == false { // Si son falsos es porque se va crear una nueva
+		fmt.Println("Se va a crear una nueva particion.")
 		crearParticion(fd)
 	}
 
 	if fl.deleteY == true {
+		fmt.Println("Se va a eliminar una particion")
 		eliminarParticion(fd)
 
 	} else if fl.addY == true {
+		fmt.Println("Se a aumentar o reducir una particion")
 		aumentarParticion(fd)
 	}
 }
