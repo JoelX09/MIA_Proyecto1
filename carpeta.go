@@ -79,7 +79,7 @@ func crearCarpeta(vd string, path string, p bool, registro bool) {
 
 				for i := 0; i < len(pathPart); i++ {
 					t = i
-					fmt.Println(pathPart[i])
+					//fmt.Println(pathPart[i])
 					encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
 					if encontrado == false {
 						break
@@ -96,7 +96,7 @@ func crearCarpeta(vd string, path string, p bool, registro bool) {
 								crearDir(rutaDisco, superBloque, path2, inicioPart)
 							}
 						} else {
-							fmt.Println("No se pueden crear las carpetas padres, falta de parametro de permiso")
+							fmt.Println("---------------\nNo se pueden crear las carpetas padres, falta de parametro de permiso\n---------------")
 						}
 					}
 				}
@@ -113,10 +113,10 @@ func crearCarpeta(vd string, path string, p bool, registro bool) {
 			}
 
 		} else {
-			fmt.Println("La particion indicada no esta montada")
+			fmt.Println("+++++++++++++++\nLa particion indicada no esta montada\n+++++++++++++++")
 		}
 	} else {
-		fmt.Println("EL disco proporcionado no esta montado")
+		fmt.Println("---------------\nEL disco proporcionado no esta montado\n---------------")
 	}
 }
 
@@ -290,7 +290,7 @@ func buscarDir(pos int64, nombre string, ruta string) (bool, int64) {
 			if nombre == nomb {
 				encontrado = true
 				posEncontrado = arbol.AVDapArraySub[i]
-				fmt.Println("Se encontro el directorio: " + nombre)
+				//fmt.Println("Se encontro el directorio: " + nombre)
 				break
 			}
 		}
@@ -345,34 +345,3 @@ func insertaBitacora(ruta string, pos int64, bi bitacora, cantidad int64, tambit
 	}
 	escribirStructBitacora(ruta, pos, bi)
 }
-
-/*
-func listadobitmap(ruta string, posIni int64, tam int) {
-
-	file, err := os.OpenFile(ruta, os.O_RDWR, 0777)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var car byte
-	var size int = int(unsafe.Sizeof(car))
-
-	for i := 0; i < tam; i++ {
-		file.Seek(posIni, 0)
-
-		data := obtenerBytesEbr(file, size)
-		buffer := bytes.NewBuffer(data)
-
-		err = binary.Read(buffer, binary.BigEndian, &car)
-		if err != nil {
-			log.Fatal("binary.Read failed", err)
-		}
-
-		fmt.Print("valor i " + strconv.Itoa(i) + " ")
-		fmt.Println(car)
-		posIni++
-	}
-
-	file.Close()
-
-}*/

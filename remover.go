@@ -26,13 +26,13 @@ func eliminarFileDir(vd string, path string, rf bool) {
 			pathPart := strings.Split(path2, "/")
 
 			if isFile == true {
-				fmt.Println("**********************************************")
+				/*fmt.Println("**********************************************")
 				fmt.Println("Carpetas donde esta el archivo")
 				fmt.Println(pathPart)
 				fmt.Println("Archivo a eliminar")
 				fmt.Println(nombre)
 				fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-				fmt.Scanln()
+				fmt.Scanln()*/
 
 				raiz := false
 				if len(pathPart) == 1 {
@@ -91,11 +91,11 @@ func eliminarFileDir(vd string, path string, rf bool) {
 					}
 				}
 			} else {
-				fmt.Println("**********************************************")
+				/*fmt.Println("**********************************************")
 				fmt.Println("Carpeta a eliminar - ES LA ULTIMA ")
 				fmt.Println(pathPart)
 				fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-				fmt.Scanln()
+				fmt.Scanln()*/
 				encontrado := false
 				posEncontrado := superBloque.SBapAVD
 				var posPadre int64

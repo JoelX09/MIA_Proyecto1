@@ -199,9 +199,8 @@ func analizador(cadena string) {
 						analizador(contenido)
 
 					case "mkdisk":
-						fmt.Println("Ruta para crear el disco: " + dato.path)
 						if flagP.sizeY == true && flagP.pathY == true && flagP.nameY == true {
-							fmt.Printf("Se crear el disco en la ruta: %s de tamano: %d con nombre: %s", dato.path, dato.size, dato.name)
+							fmt.Printf("***************\nSe creara el disco: %s\n***************", dato.name)
 							fmt.Println("")
 							crearDisco(dato.size, dato.path, dato.name, dato.unit)
 						} else {
@@ -209,21 +208,21 @@ func analizador(cadena string) {
 						}
 
 					case "rmdisk":
-						fmt.Println("Desea remover el diso: " + dato.path + " [y/n]")
+						fmt.Println("***************\nDesea remover el diso: " + dato.path + " [y/n]")
 						reader := bufio.NewReader(os.Stdin)
 						lectura, _ := reader.ReadString('\n')
 						eleccion := strings.TrimRight(lectura, "\n")
-						if eleccion == "y" {
+						if eleccion == "y" || eleccion == "Y" {
 							err := os.Remove(dato.path)
 							if err != nil {
-								fmt.Println("Error eliminando archivo: No se encontro el archivo" /*%v\n", err*/)
+								fmt.Println("---------------\nError eliminando archivo: No se encontro el archivo\n---------------" /*%v\n", err*/)
 							} else {
-								fmt.Println("Eliminado correctamente")
+								fmt.Println("***************\nEliminado correctamente\n***************")
 							}
-						} else if eleccion == "n" {
-							fmt.Println("No se eliminara el archivo")
+						} else if eleccion == "n" || eleccion == "N" {
+							fmt.Println("++++++++++\nNo se eliminara el archivo\n++++++++++")
 						} else {
-							fmt.Println("Confirmacion invalida.")
+							fmt.Println("----------\nConfirmacion invalida.\n----------")
 						}
 
 					case "fdisk":
@@ -241,11 +240,11 @@ func analizador(cadena string) {
 					case "mount":
 						if comandoUnico == false {
 							if flagP.pathY == true && flagP.nameY == true {
-								fmt.Printf("Se montara la particion: %s del disco: %s", dato.name, dato.path)
+								fmt.Printf("**********\nSe montara la particion: %s\n**********", dato.name)
 								fmt.Println("")
 								_, err := ioutil.ReadFile(dato.path)
 								if err != nil {
-									fmt.Println("Error no existe el disco")
+									fmt.Println("----------\nError no existe el disco\n----------")
 								} else {
 									montarParticion(dato.path, dato.name)
 								}
@@ -305,8 +304,14 @@ func analizador(cadena string) {
 						} else {
 							fmt.Println("Parametro obligatorio faltante")
 						}
+					case "ren":
+						if flagP.idY == true && flagP.pathY == true && flagP.nameY == true {
+							renombrar(dato.idn, dato.path, dato.name)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
 					default:
-						fmt.Println("El comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1))
+						fmt.Println("===============\nEl comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1) + "\n===============")
 
 					}
 				}

@@ -7,7 +7,6 @@ import (
 	"math"
 	"os"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -485,7 +484,7 @@ func graficarTreeFile(vd string, treeComplete bool, ruta string) string {
 					posC    int64
 				}
 				for i := 0; i < len(pathPart); i++ {
-					fmt.Println(pathPart[i])
+					//fmt.Println(pathPart[i])
 					encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
 					if encontrado == false {
 						break
@@ -1095,7 +1094,20 @@ func descomponer(path string) (string, string, bool) {
 	var carpeta, archivo string
 	pathPart := strings.SplitAfter(path, "/")
 	archivo = pathPart[len(pathPart)-1]
-	match, _ := regexp.MatchString("[a-zA-Z0-9]+.[a-zA-Z0-9]+", archivo)
+	//fmt.Println("Valor de nombre a examinar")
+	//fmt.Println(archivo)
+	analizar := strings.Split(archivo, ".")
+	match := true
+	if len(analizar) == 1 {
+		match = false
+	}
+	//match, _ := regexp.MatchString("[a-zA-Z0-9]+.[a-zA-Z0-9]+", archivo)
+	/*fmt.Println("REsultado")
+	fmt.Println(match)
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()
+	fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
+	fmt.Scanln()*/
 	if match == true {
 		for i := 0; i < len(pathPart)-1; i++ {
 			carpeta += pathPart[i]

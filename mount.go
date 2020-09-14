@@ -84,7 +84,7 @@ func montarParticion(path string, name string) {
 					}
 					actualizarMBR(path, listaP)
 				} else if temp.Partstatus == 1 {
-					fmt.Println("La particion ya esta montada")
+					fmt.Println("+++++++++++++++\nLa particion ya esta montada\n+++++++++++++++")
 				}
 				break
 			}
@@ -112,14 +112,14 @@ func montarParticion(path string, name string) {
 			escribirListaEbr(path, listaTemp)
 
 		} else if discoL.PartstatusL == 1 {
-			fmt.Println("La particion ya esta montada")
+			fmt.Println("+++++++++++++++\nLa particion ya esta montada\n+++++++++++++++")
 		}
 
 	} else {
-		fmt.Println("NO se encontro una particion para montar con el nombre: " + name)
+		fmt.Println("---------------\nNO se encontro una particion para montar con el nombre: " + name + "\n---------------")
 	}
 	if listaP.Len() == 0 {
-		fmt.Println("No existe ninguna particion en el disco indicado")
+		fmt.Println("---------------\nNo existe ninguna particion en el disco indicado\n---------------")
 	}
 }
 

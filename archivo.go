@@ -57,7 +57,7 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 
 				for i := 0; i < len(pathPart); i++ {
 					t = i
-					fmt.Println(pathPart[i])
+					//fmt.Println(pathPart[i])
 					encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
 					if encontrado == false {
 						break
@@ -65,11 +65,6 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 				}
 
 				if encontrado == true {
-					/*fmt.Println("******************************************************")
-					fmt.Println("Todas las carpetas existen")
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()*/
-					//fmt.Println(posEncontrado)
 
 					raiz := obtenerAVD(rutaDisco, posEncontrado)
 					posDDr := raiz.AVDapDetalleDir
@@ -140,13 +135,13 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 							for i := 0; i < len(pathPart); i++ {
 								superBloque = obtenerSB(rutaDisco, inicioPart)
 								posUltimaCarpeta = crearDir(rutaDisco, superBloque, path2, inicioPart)
-								fmt.Println("Nuevo archivo en dd")
-								fmt.Println(posUltimaCarpeta)
+								//fmt.Println("Nuevo archivo en dd")
+								//fmt.Println(posUltimaCarpeta)
 							}
 							codigoRepetido(rutaDisco, posUltimaCarpeta, cont, size, inicioPart, nombreArchivo)
 
 						} else {
-							fmt.Println("No se pueden crear las carpetas padres, falta de parametro de permiso")
+							fmt.Println("---------------\nNo se pueden crear las carpetas padres, falta de parametro de permiso\n---------------")
 						}
 					}
 
@@ -165,10 +160,10 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 				insertaBitacora(rutaDisco, superBloque.SBapLOG, bit, superBloque.SBavdCount, sizeBitacora)
 			}
 		} else {
-			fmt.Println("La particion indicada no esta montada")
+			fmt.Println("---------------\nLa particion indicada no esta montada\n---------------")
 		}
 	} else {
-		fmt.Println("EL disco proporcionado no esta montado")
+		fmt.Println("---------------\nEL disco proporcionado no esta montado\n---------------")
 	}
 }
 

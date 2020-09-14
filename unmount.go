@@ -18,7 +18,7 @@ func desmontar() {
 		}
 	}
 	listaID.Init()
-	fmt.Println("===========================\nLista de desmontar finalizo")
+	fmt.Println("===========================\nLista de desmontar finalizo\n===========================")
 }
 
 func eliminarVD(vd string) {
@@ -94,10 +94,10 @@ func eliminarVD(vd string) {
 				var nuevo estructDisco
 				arregloMount[idDisco2] = nuevo
 			}
-			fmt.Println("Particion desmontada")
+			fmt.Println("***************\nParticion desmontada\n***************")
 		}
 	} else {
-		fmt.Println("EL disco solicitado no esta montado")
+		fmt.Println("---------------\nEL disco solicitado no esta montado\n---------------")
 	}
 
 }
