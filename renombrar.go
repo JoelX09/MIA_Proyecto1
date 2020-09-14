@@ -34,19 +34,19 @@ func renombrar(vd string, path string, nombreNuevo string) {
 				if raiz == false {
 					encontrado := false
 					posEncontrado := superBloque.SBapAVD
-					fmt.Println("EMpezre analisis de carpetas")
+					/*fmt.Println("EMpezre analisis de carpetas")
 					fmt.Println("ELmentos")
 					fmt.Println(pathPart)
 					fmt.Println("longitud")
 					fmt.Println(len(pathPart))
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()
+					fmt.Scanln()*/
 					for i := 0; i < len(pathPart); i++ {
 						encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
 					}
-					fmt.Println("termine")
+					/*fmt.Println("termine")
 					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()
+					fmt.Scanln()*/
 					if encontrado == true {
 						carpetaPadre := obtenerAVD(rutaDisco, posEncontrado)
 

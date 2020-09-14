@@ -51,6 +51,7 @@ type datoDisco struct {
 	nombre  string
 	ruta    string
 	cont    string
+	file    string
 }
 
 type banderaParam struct {
@@ -67,6 +68,7 @@ type banderaParam struct {
 	rutaY   bool
 	guionP  bool
 	guionRF bool
+	fileY   bool
 }
 
 var dato datoDisco
@@ -177,8 +179,8 @@ func analizador(cadena string) {
 					}
 
 					fmt.Println("Contenido: " + parametro)
-					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", "", ""}
-					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false, false, false}
+					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", "", "", ""}
+					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false, false, false, false}
 					incorrecto = false
 					analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
@@ -310,6 +312,12 @@ func analizador(cadena string) {
 						} else {
 							fmt.Println("Parametro obligatorio faltante")
 						}
+					case "cat":
+						if flagP.idY == true && flagP.fileY == true {
+							cat(dato.idn, dato.file)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
 					default:
 						fmt.Println("===============\nEl comando " + tipo + " no es valido. Linea: " + strconv.Itoa(i+1) + "\n===============")
 
@@ -412,6 +420,10 @@ func almacenarValor(parametro string, contParam string, linea int) {
 	if match == true {
 		valor = "id"
 	}
+	match1, _ := regexp.MatchString("^file[0-9]+", valor)
+	if match1 == true {
+		valor = "file"
+	}
 	switch valor {
 	case "path":
 		flagP.pathY = true
@@ -460,6 +472,9 @@ func almacenarValor(parametro string, contParam string, linea int) {
 		flagP.guionRF = true
 	case "cont":
 		dato.cont = contParam
+	case "file":
+		flagP.fileY = true
+		dato.file = contParam
 	default:
 		incorrecto = true
 		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))
