@@ -26,13 +26,6 @@ func eliminarFileDir(vd string, path string, rf bool) {
 			pathPart := strings.Split(path2, "/")
 
 			if isFile == true {
-				/*fmt.Println("**********************************************")
-				fmt.Println("Carpetas donde esta el archivo")
-				fmt.Println(pathPart)
-				fmt.Println("Archivo a eliminar")
-				fmt.Println(nombre)
-				fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-				fmt.Scanln()*/
 
 				raiz := false
 				if len(pathPart) == 1 {
@@ -46,6 +39,10 @@ func eliminarFileDir(vd string, path string, rf bool) {
 
 					for i := 0; i < len(pathPart); i++ {
 						encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
+						if encontrado == false {
+							fmt.Println("----------\nNo existe: " + pathPart[i] + "\n----------")
+							break
+						}
 					}
 
 					if encontrado == true {
@@ -91,27 +88,20 @@ func eliminarFileDir(vd string, path string, rf bool) {
 					}
 				}
 			} else {
-				/*fmt.Println("**********************************************")
-				fmt.Println("Carpeta a eliminar - ES LA ULTIMA ")
-				fmt.Println(pathPart)
-				fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-				fmt.Scanln()*/
+
 				encontrado := false
 				posEncontrado := superBloque.SBapAVD
 				var posPadre int64
 				for i := 0; i < len(pathPart); i++ {
 					encontrado, posEncontrado, posPadre = buscarDirRM(posEncontrado, pathPart[i], rutaDisco)
+					if encontrado == false {
+						fmt.Println("----------\nNo existe: " + pathPart[i] + "\n----------")
+						break
+					}
 				}
 				if encontrado == true {
 					borraAVD(rutaDisco, posEncontrado, inicioPart)
 					avdraiz := obtenerAVD(rutaDisco, posPadre)
-					fmt.Println("**********************************************")
-					fmt.Println("Posicion de la carpeta a eliminar ")
-					fmt.Println(posEncontrado)
-					fmt.Println("Posicion de la carpeta padre ")
-					fmt.Println(posPadre)
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()
 					for i := 0; i < 6; i++ {
 						if avdraiz.AVDapArraySub[i] == posEncontrado {
 							avdraiz.AVDapArraySub[i] = -1
@@ -147,15 +137,16 @@ func borraAVD(ruta string, pos int64, iniciopart int64) {
 	superBloque.SBavdFree++
 	superBloque.SBfirstFreeBitAVD = obtenerFirstFreeBit(ruta, superBloque.SBapBAVD, int(superBloque.SBddCount))
 	escribirSuperBloque(ruta, iniciopart, superBloque)
-
+	if avdtemp.AVDapDetalleDir != -1 {
+		borrarDD(ruta, avdtemp.AVDapDetalleDir, iniciopart)
+	}
+	superBloque = obtenerSB(ruta, iniciopart)
 	for i := 0; i < 6; i++ {
 		if avdtemp.AVDapArraySub[i] != -1 {
 			borraAVD(ruta, avdtemp.AVDapArraySub[i], iniciopart)
 		}
 	}
-	if avdtemp.AVDapDetalleDir != -1 {
-		borrarDD(ruta, avdtemp.AVDapDetalleDir, iniciopart)
-	}
+	superBloque = obtenerSB(ruta, iniciopart)
 	if avdtemp.AVDapAVD != -1 {
 		borraAVD(ruta, avdtemp.AVDapAVD, iniciopart)
 	}
@@ -164,13 +155,13 @@ func borraAVD(ruta string, pos int64, iniciopart int64) {
 
 func borrarDD(ruta string, pos int64, iniciopart int64) {
 	ddtemp := obtenerDD(ruta, pos)
-	superBloque := obtenerSB(ruta, iniciopart)
 
 	for i := 0; i < 5; i++ {
 		if ddtemp.DDarrayFiles[i].DDfileApInodo != -1 {
 			borrarInodo(ruta, ddtemp.DDarrayFiles[i].DDfileApInodo, iniciopart)
 		}
 	}
+	superBloque := obtenerSB(ruta, iniciopart)
 
 	nuevo := dd{}
 	for i := 0; i < 5; i++ {

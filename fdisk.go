@@ -419,8 +419,8 @@ func eliminarParticion(fd datoDisco) {
 						}
 					}
 
-					//fmt.Println("Contenido despues de eliminar una particion Logica")
-					//imprimirListaL(fd.name, false, false, listaL)
+					fmt.Println("Contenido despues de eliminar una particion Logica")
+					imprimirListaL(fd.name, false, false, listaL)
 					//fmt.Println("------------------------------------------------")
 					//fmt.Println("Escribiendo EBR's")
 					//fmt.Println("------------------------------------------------")

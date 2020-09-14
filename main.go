@@ -324,14 +324,15 @@ func analizador(cadena string) {
 					}
 				}
 			}
-			fmt.Println("Presione enter para continuar")
-			fmt.Scanln()
+			/*fmt.Println("Presione enter para continuar")
+			fmt.Scanln()*/
 		}
 	}
 }
 
 func analizadorParametros(cadena string, linea int) /*datoDisco */ {
 	listaID.Init()
+	listaFile.Init()
 	cadena += "#"
 	estado := 0
 	var parametro, contParam string
@@ -413,6 +414,7 @@ func analizadorParametros(cadena string, linea int) /*datoDisco */ {
 }
 
 var listaID = list.New()
+var listaFile = list.New()
 
 func almacenarValor(parametro string, contParam string, linea int) {
 	valor := strings.ToLower(parametro)
@@ -475,6 +477,7 @@ func almacenarValor(parametro string, contParam string, linea int) {
 	case "file":
 		flagP.fileY = true
 		dato.file = contParam
+		listaFile.PushBack(contParam)
 	default:
 		incorrecto = true
 		fmt.Println("El parametro: " + valor + " no es valido. Linea: " + strconv.Itoa(linea))

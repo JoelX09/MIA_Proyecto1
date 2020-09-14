@@ -34,19 +34,13 @@ func renombrar(vd string, path string, nombreNuevo string) {
 				if raiz == false {
 					encontrado := false
 					posEncontrado := superBloque.SBapAVD
-					/*fmt.Println("EMpezre analisis de carpetas")
-					fmt.Println("ELmentos")
-					fmt.Println(pathPart)
-					fmt.Println("longitud")
-					fmt.Println(len(pathPart))
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()*/
 					for i := 0; i < len(pathPart); i++ {
 						encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
+						if encontrado == false {
+							fmt.Println("No existe: " + pathPart[i])
+							break
+						}
 					}
-					/*fmt.Println("termine")
-					fmt.Println("\nEjecuacion pausada... Presione enter para continuar")
-					fmt.Scanln()*/
 					if encontrado == true {
 						carpetaPadre := obtenerAVD(rutaDisco, posEncontrado)
 
@@ -76,6 +70,10 @@ func renombrar(vd string, path string, nombreNuevo string) {
 				posEncontrado := superBloque.SBapAVD
 				for i := 0; i < len(pathPart); i++ {
 					encontrado, posEncontrado = buscarDir(posEncontrado, pathPart[i], rutaDisco)
+					if encontrado == false {
+						fmt.Println("No existe: " + pathPart[i])
+						break
+					}
 				}
 				if encontrado == true {
 					cambiarNombreCarpeta(rutaDisco, posEncontrado, nombreNuevo)
