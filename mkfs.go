@@ -139,7 +139,7 @@ func formatearPart(vd string, tipo string, add int64, unit byte) {
 			cantidadBloques := 4 * cantidadInodos //20*nEstructuras
 			//cantidadBitacoras := nEstructuras
 
-			_, nombreDisco := descomponer(rutaDisco)
+			_, nombreDisco, _ := descomponer(rutaDisco)
 
 			// ----- LLENANDO EL SUPER BLOQUE -------------------------------------
 			copy(superBloque.SBnombreHd[:], nombreDisco)

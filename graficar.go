@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -36,19 +37,19 @@ func graficar(path string, nombre string, id string, ruta string) {
 		generar(dot, path)
 	} else if nombre == "bm_arbdir" {
 		dot := graficarbitmap(id, true, false, false, false)
-		pathtxt, nombretxt := descomponer(path)
+		pathtxt, nombretxt, _ := descomponer(path)
 		archivotxt(pathtxt, nombretxt, dot)
 	} else if nombre == "bm_detdir" {
 		dot := graficarbitmap(id, false, true, false, false)
-		pathtxt, nombretxt := descomponer(path)
+		pathtxt, nombretxt, _ := descomponer(path)
 		archivotxt(pathtxt, nombretxt, dot)
 	} else if nombre == "bm_inode" {
 		dot := graficarbitmap(id, false, false, true, false)
-		pathtxt, nombretxt := descomponer(path)
+		pathtxt, nombretxt, _ := descomponer(path)
 		archivotxt(pathtxt, nombretxt, dot)
 	} else if nombre == "bm_block" {
 		dot := graficarbitmap(id, false, false, false, true)
-		pathtxt, nombretxt := descomponer(path)
+		pathtxt, nombretxt, _ := descomponer(path)
 		archivotxt(pathtxt, nombretxt, dot)
 	} else if nombre == "bitacora" {
 		dot := dotBitacora(id)
@@ -59,7 +60,7 @@ func graficar(path string, nombre string, id string, ruta string) {
 }
 
 func generar(dot string, path string) {
-	pathDot, nombreDot := descomponer(path)
+	pathDot, nombreDot, _ := descomponer(path)
 	generarDOT(dot, pathDot, nombreDot)
 }
 
@@ -463,7 +464,7 @@ func graficarTreeFile(vd string, treeComplete bool, ruta string) string {
 			superBloque := obtenerSB(rutaDisco, inicioPart)
 
 			//dot += nodosTreeDirectorio(rutaDisco, superBloque.SBapAVD, treeComplete)
-			path, nombre := descomponer(ruta)
+			path, nombre, _ := descomponer(ruta)
 			path1 := strings.TrimPrefix(path, "/")
 			path2 := strings.TrimSuffix(path1, "/")
 			pathPart := strings.Split(path2, "/")
@@ -1090,12 +1091,20 @@ func generarDOT(dot string, path string, nombre string) {
 	cmd.Run()
 }
 
-func descomponer(path string) (string, string) {
+func descomponer(path string) (string, string, bool) {
 	var carpeta, archivo string
 	pathPart := strings.SplitAfter(path, "/")
-	for i := 0; i < len(pathPart)-1; i++ {
-		carpeta += pathPart[i]
-	}
 	archivo = pathPart[len(pathPart)-1]
-	return carpeta, archivo
+	match, _ := regexp.MatchString("[a-zA-Z0-9]+.[a-zA-Z0-9]+", archivo)
+	if match == true {
+		for i := 0; i < len(pathPart)-1; i++ {
+			carpeta += pathPart[i]
+		}
+	} else {
+		for i := 0; i < len(pathPart); i++ {
+			carpeta += pathPart[i]
+		}
+	}
+
+	return carpeta, archivo, match
 }

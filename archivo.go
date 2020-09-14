@@ -21,7 +21,7 @@ func crearArvhi(vd string, path string, p bool, size int64, cont string, registr
 
 	if arregloMount[idDisco2].estado == 1 {
 		if arregloMount[idDisco2].discos[idP].estado == 1 {
-			rutaAchivo, nombreArchivo := descomponer(path)
+			rutaAchivo, nombreArchivo, _ := descomponer(path)
 			inicioPart := arregloMount[idDisco2].discos[idP].Partstart
 			rutaDisco := arregloMount[idDisco2].Ruta
 			superBloque := obtenerSB(rutaDisco, inicioPart)

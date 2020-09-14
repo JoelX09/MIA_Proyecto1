@@ -66,6 +66,7 @@ type banderaParam struct {
 	nombreY bool
 	rutaY   bool
 	guionP  bool
+	guionRF bool
 }
 
 var dato datoDisco
@@ -177,7 +178,7 @@ func analizador(cadena string) {
 
 					fmt.Println("Contenido: " + parametro)
 					dato = datoDisco{"", 0, "", 0, 0, "", "", "", 0, "", "", "", ""}
-					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false, false}
+					flagP = banderaParam{false, false, false, false, false, false, false, false, false, false, false, false, false}
 					incorrecto = false
 					analizadorParametros(parametro, i+1)
 					//fmt.Println(dato)
@@ -295,6 +296,12 @@ func analizador(cadena string) {
 					case "recovery":
 						if flagP.idY == true {
 							recorery(dato.idn)
+						} else {
+							fmt.Println("Parametro obligatorio faltante")
+						}
+					case "rm":
+						if flagP.idY == true && flagP.pathY == true {
+							eliminarFileDir(dato.idn, dato.path, flagP.guionRF)
 						} else {
 							fmt.Println("Parametro obligatorio faltante")
 						}
@@ -444,6 +451,8 @@ func almacenarValor(parametro string, contParam string, linea int) {
 		dato.ruta = contParam
 	case "p":
 		flagP.guionP = true
+	case "rf":
+		flagP.guionRF = true
 	case "cont":
 		dato.cont = contParam
 	default:
